@@ -3,7 +3,7 @@
 > Eine moderne, browser-basierte Task-Management-Anwendung zur effizienten Organisation von Aufgaben und Terminen mit optionaler Cloud-Synchronisation.
 
 [![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](https://github.com/geimist/Aufgaben-Manager)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](#Lizenz)
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](#Lizenz)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-yellow.svg)](https://developer.mozilla.org/de/docs/Web/JavaScript)
 
 ## 📋 Inhaltsverzeichnis
@@ -22,7 +22,6 @@
 - [📖 Verwendung](#-verwendung)
 - [🔧 Sicherheit](#-sicherheit)
 - [🆘 Support](#-support)
-- [📝 Lizenz](#-lizenz)
 
 ---
 
