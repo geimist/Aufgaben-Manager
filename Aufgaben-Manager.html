@@ -926,6 +926,23 @@
                 font-size: 0.9em;
             }
         }
+
+        /* Password Toggle Button Styling */
+        .password-toggle-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            padding: 2px;
+            border-radius: 4px;
+            transition: all 0.3s;
+            color: #666;
+        }
+
+        .password-toggle-btn:hover {
+            color: #333;
+            background-color: rgba(0, 0, 0, 0.1);
+        }
         
         .task-header {
             display: flex;
@@ -1323,6 +1340,19 @@
                         <small style="color: #666; font-size: 12px;">Optionaler benutzerfreundlicher Name für dieses Gerät (leer lassen für automatische Erkennung)</small>
                         <div id="currentDeviceName" style="margin-top: 5px; font-size: 12px; color: #888;">
                             Aktueller Name: <span id="currentNameDisplay">wird geladen...</span>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="encryptionKey">Verschlüsselungs-Schlüssel</label>
+                        <div class="password-input-container" style="position: relative;">
+                            <input type="password" id="encryptionKey" placeholder="Optionaler Sicherheitsschlüssel" style="width: 100%; padding-right: 40px;">
+                            <button type="button" id="toggleEncryptionKey" class="password-toggle-btn" title="Passwort ein-/ausblenden" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px;">
+                                👁️
+                            </button>
+                        </div>
+                        <small style="color: #666; font-size: 12px;">Ein Schlüssel zum Verschlüsseln der Sync-Daten. Leer lassen für unverschlüsselte Synchronisation.</small>
+                        <div id="keyHint" style="margin-top: 5px; font-size: 12px; color: #888; display: none;">
+                            ⚠️ Änderungen des Schlüssels machen alte verschlüsselte Backups unzugänglich
                         </div>
                     </div>
                     <div style="text-align: center; margin-top: 20px;">
@@ -4306,12 +4336,29 @@
                 const userUidResult = db.exec(`
                     SELECT value FROM metadata WHERE key = 'user_uid'
                 `);
+                const encryptionKeyResult = db.exec(`
+                    SELECT value FROM metadata WHERE key = 'encryption_key'
+                `);
 
                 const serverUrl = serverUrlResult.length > 0 ? serverUrlResult[0].values[0][0] : '';
                 const userUid = userUidResult.length > 0 ? userUidResult[0].values[0][0] : '';
+                const encryptionKey = encryptionKeyResult.length > 0 ? encryptionKeyResult[0].values[0][0] : '';
 
                 document.getElementById('serverUrl').value = serverUrl;
                 document.getElementById('userUid').value = userUid;
+                document.getElementById('encryptionKey').value = encryptionKey;
+
+                // Password Toggle Setup
+                const toggleBtn = document.getElementById('toggleEncryptionKey');
+                const passwordInput = document.getElementById('encryptionKey');
+                if (toggleBtn && passwordInput) {
+                    toggleBtn.addEventListener('click', function() {
+                        const isCurrentlyPassword = passwordInput.type === 'password';
+                        passwordInput.type = isCurrentlyPassword ? 'text' : 'password';
+                        toggleBtn.textContent = isCurrentlyPassword ? '🙈' : '👁️';
+                        toggleBtn.title = isCurrentlyPassword ? 'Passwort verstecken' : 'Passwort anzeigen';
+                    });
+                }
 
                 // Aktuelle Geräte-Namen laden und anzeigen
                 const currentFingerprint = getDeviceFingerprint();
@@ -4345,6 +4392,7 @@
             const serverUrl = document.getElementById('serverUrl').value;
             const userUid = document.getElementById('userUid').value;
             const deviceName = document.getElementById('deviceName').value.trim();
+            const encryptionKey = document.getElementById('encryptionKey').value.trim();
 
             try {
                 // Server-Konfiguration in Metadata speichern
@@ -4357,6 +4405,19 @@
                     INSERT OR REPLACE INTO metadata (key, value, updated_at)
                     VALUES ('user_uid', ?, datetime('now'))
                 `, [userUid]);
+
+                // Verschlüsselungs-Key speichern (leer = keine Verschlüsselung)
+                if (encryptionKey) {
+                    db.run(`
+                        INSERT OR REPLACE INTO metadata (key, value, updated_at)
+                        VALUES ('encryption_key', ?, datetime('now'))
+                    `, [encryptionKey]);
+                } else {
+                    // Falls leer, Eintrag entfernen (nicht speichern)
+                    db.run(`
+                        DELETE FROM metadata WHERE key = 'encryption_key'
+                    `);
+                }
 
                 // Benutzerdefinierten Geräte-Namen verwalten
                 if (deviceName) {
@@ -4381,6 +4442,20 @@
             } catch (error) {
                 console.error('Fehler beim Speichern der Server-Konfiguration:', error);
                 showStatus('Fehler beim Speichern der Konfiguration', 'error');
+            }
+        }
+
+        // Hilfsfunktion: Verschlüsselungs-Key laden (null wenn keiner gesetzt)
+        function getEncryptionKey() {
+            if (!db) return null;
+
+            try {
+                const result = db.exec(`
+                    SELECT value FROM metadata WHERE key = 'encryption_key'
+                `);
+                return result.length > 0 ? result[0].values[0][0] : null;
+            } catch (error) {
+                return null;
             }
         }
 
@@ -4740,7 +4815,7 @@
                 }
 
                 // Deserialisiere Server-Daten für Vergleich
-                const serverData = deserializeDatabaseFromJSON(result.data);
+                const serverData = await deserializeDatabaseFromJSON(result.data);
                 const serverDB = serverData.db;
 
                 // Hole Server- und lokale Zeitstempel für Vergleich
@@ -4962,14 +5037,124 @@
             });
         }
 
+        // ============================
+        // VERSCHLÜSSELUNGSFUNKTIONEN
+        // ============================
+
+        // Key aus Passwort ableiten (PBKDF2 für AES-GCM)
+        async function deriveEncryptionKey(password, salt = null) {
+            if (!salt) {
+                // Generiere zufälligen Salt falls keiner übergeben
+                salt = crypto.getRandomValues(new Uint8Array(16));
+            }
+
+            const encoder = new TextEncoder();
+            const keyMaterial = await crypto.subtle.importKey(
+                'raw',
+                encoder.encode(password),
+                'PBKDF2',
+                false,
+                ['deriveBits', 'deriveKey']
+            );
+
+            const key = await crypto.subtle.deriveKey(
+                {
+                    name: 'PBKDF2',
+                    salt: salt,
+                    iterations: 100000,
+                    hash: 'SHA-256'
+                },
+                keyMaterial,
+                { name: 'AES-GCM', length: 256 },
+                true,
+                ['encrypt', 'decrypt']
+            );
+
+            return { key, salt };
+        }
+
+        // Daten verschlüsseln
+        async function encryptData(data, password) {
+            const { key, salt } = await deriveEncryptionKey(password);
+
+            const encoder = new TextEncoder();
+            const encodedData = encoder.encode(data);
+
+            // Generiere zufälligen Initialisierungsvektor (IV)
+            const iv = crypto.getRandomValues(new Uint8Array(12));
+
+            const encrypted = await crypto.subtle.encrypt(
+                {
+                    name: 'AES-GCM',
+                    iv: iv
+                },
+                key,
+                encodedData
+            );
+
+            // Kombiniere Salt + IV + verschlüsselte Daten
+            const result = new Uint8Array(salt.length + iv.length + encrypted.byteLength);
+            result.set(salt, 0);
+            result.set(iv, salt.length);
+            result.set(new Uint8Array(encrypted), salt.length + iv.length);
+
+            // Base64 für JSON-Transport
+            return btoa(String.fromCharCode.apply(null, result));
+        }
+
+        // Daten entschlüsseln
+        async function decryptData(encryptedData, password) {
+            try {
+                // Base64 dekodieren
+                const combined = new Uint8Array(atob(encryptedData).split('').map(c => c.charCodeAt(0)));
+
+                // Extrahiere Salt (16 Bytes), IV (12 Bytes) und verschlüsselte Daten
+                const salt = combined.slice(0, 16);
+                const iv = combined.slice(16, 28);
+                const encrypted = combined.slice(28);
+
+                // Key ableiten
+                const { key } = await deriveEncryptionKey(password, salt);
+
+                // Entschlüsseln
+                const decrypted = await crypto.subtle.decrypt(
+                    {
+                        name: 'AES-GCM',
+                        iv: iv
+                    },
+                    key,
+                    encrypted
+                );
+
+                const decoder = new TextDecoder();
+                return decoder.decode(decrypted);
+            } catch (error) {
+                throw new Error('Verschlüsselung-Schlüssel ist falsch oder Daten sind beschädigt');
+            }
+        }
+
         // Hilfsfunktion: Datenbank als JSON serialisieren
-        function serializeDatabaseAsJSON() {
+        async function serializeDatabaseAsJSON() {
             if (!db) return null;
 
             try {
                 const data = db.export();
-                const base64 = arrayBufferToBase64(data);
+                let base64 = arrayBufferToBase64(data);
                 const timestamp = new Date().toISOString();
+                let isEncrypted = false;
+
+                // Prüfen, ob Verschlüsselung aktiviert ist
+                const encryptionKey = getEncryptionKey();
+                if (encryptionKey) {
+                    try {
+                        base64 = await encryptData(base64, encryptionKey);
+                        isEncrypted = true;
+                    } catch (error) {
+                        console.error('Fehler bei Datenverschlusselung:', error);
+                        showStatus('Fehler bei Verschlüsselung: ' + error.message, 'error');
+                        throw error;
+                    }
+                }
 
                 // last_local_change vom Client ermitteln
                 let lastLocalChange = null;
@@ -4989,7 +5174,8 @@
                     timestamp: timestamp,
                     last_local_change: lastLocalChange, // Zum Server schicken
                     deviceFingerprint: getDeviceFingerprint(), // Geräte-Fingerprint hinzufügen
-                    version: APP_VERSION
+                    version: APP_VERSION,
+                    encrypted: isEncrypted // Markiere ob verschlüsselt
                 };
             } catch (error) {
                 console.error('Fehler beim Serialisieren der Datenbank:', error);
@@ -4998,9 +5184,27 @@
         }
 
         // Hilfsfunktion: Datenbank aus JSON deserialisieren
-        function deserializeDatabaseFromJSON(jsonData) {
+        async function deserializeDatabaseFromJSON(jsonData) {
             try {
-                const arrayBuffer = base64ToArrayBuffer(jsonData.data);
+                let base64Data = jsonData.data;
+
+                // Prüfen, ob Daten verschlüsselt sind
+                if (jsonData.encrypted) {
+                    const encryptionKey = getEncryptionKey();
+                    if (!encryptionKey) {
+                        throw new Error('Verschlüsselte Daten gefunden, aber kein Key konfiguriert');
+                    }
+
+                    try {
+                        // Entschlüsseln vor Base64-Dekodierung
+                        base64Data = await decryptData(base64Data, encryptionKey);
+                    } catch (error) {
+                        console.error('Fehler bei Entschlüsselung:', error);
+                        throw new Error('Daten konnten nicht entschlüsselt werden. Möglicherweise falscher Verschlüsselungs-Schlüssel.');
+                    }
+                }
+
+                const arrayBuffer = base64ToArrayBuffer(base64Data);
 
                 // Neue Datenbank erstellen und laden
                 const newDb = new SQL.Database(new Uint8Array(arrayBuffer));
@@ -5034,7 +5238,7 @@
             try {
                 showStatus('Lade Datenbank zum Server hoch...', 'info');
 
-                const jsonData = serializeDatabaseAsJSON();
+                const jsonData = await serializeDatabaseAsJSON();
                 const payload = {
                     action: 'upload',
                     uid: config.uid,
@@ -5116,7 +5320,7 @@
                 if (result.success) {
                     if (result.data) {
                         // Lokale Datenbank mit Server-Daten ersetzen
-                        const serverData = deserializeDatabaseFromJSON(result.data);
+                        const serverData = await deserializeDatabaseFromJSON(result.data);
 
                         // Sicherheitsfrage vor Überschreiben (nur wenn nicht deaktiviert)
                         if (!skipConfirmation) {
@@ -5486,6 +5690,98 @@
                 showStatus('Fehler beim Senden der Nachricht: ' + error.message, 'error');
             }
         }
+
+        // ============================
+        // TEST-FUNKTIONEN FÜR VERSCHLÜSSELUNG
+        // ============================
+
+        // Test der Verschlüsselung/Entschlüsselung
+        async function testEncryption() {
+            try {
+                const testKey = 'meinTestPasswort123';
+                const testData = 'Hello, verschlüsselte Welt!';
+                console.log('=== Verschlüsselungs-Test ===');
+                console.log('Original-Daten:', testData);
+
+                // Verschlüsseln
+                const encrypted = await encryptData(testData, testKey);
+                console.log('Verschlüsselte Daten:', encrypted);
+
+                // Entschlüsseln
+                const decrypted = await decryptData(encrypted, testKey);
+                console.log('Entschlüsselte Daten:', decrypted);
+
+                // Prüfen ob identisch
+                if (testData === decrypted) {
+                    console.log('✅ Verschlüsselung/Entschlüsselung erfolgreich!');
+                    return true;
+                } else {
+                    console.error('❌ Daten stimmen nicht überein!');
+                    return false;
+                }
+            } catch (error) {
+                console.error('❌ Verschlüsselungs-Test fehlgeschlagen:', error);
+                return false;
+            }
+        }
+
+        // Test der Datenbank-Serialisierung mit Verschlüsselung
+        async function testDatabaseSerialization() {
+            try {
+                console.log('=== Datenbank-Serialisierung-Test ===');
+
+                // Konfiguration setzen für Test
+                db.run(`INSERT OR REPLACE INTO metadata (key, value, updated_at) VALUES ('encryption_key', 'testkey123', datetime('now'))`);
+
+                // Serialisierung testen
+                const serialized = await serializeDatabaseAsJSON();
+                console.log('Serialisierte Daten enthalten Verschlüsselung:', serialized.encrypted);
+
+                // Deserialisierung testen
+                const deserialized = await deserializeDatabaseFromJSON(serialized);
+                console.log('✅ Datenbank-Serialisierung/Deserialisierung erfolgreich!');
+
+                // Test-Key zurücksetzen
+                db.run(`DELETE FROM metadata WHERE key = 'encryption_key'`);
+
+                return true;
+            } catch (error) {
+                console.error('❌ Datenbank-Serialisierung-Test fehlgeschlagen:', error);
+                return false;
+            }
+        }
+
+        // Alle Tests ausführen (im Browser-Konsole aufrufen)
+        async function runAllTests() {
+            console.log('=== STARTE INTEGRATIONSTESTS FÜR VERSCHLÜSSELUNG ===');
+
+            let encryptionTest = false;
+            let serializationTest = false;
+
+            try {
+                if (db) {
+                    encryptionTest = await testEncryption();
+                    serializationTest = await testDatabaseSerialization();
+                } else {
+                    console.warn('⚠️ Datenbank nicht verfügbar - überspringe Tests');
+                }
+            } catch (error) {
+                console.error('❌ Fehler beim Testen:', error);
+            }
+
+            console.log('\n=== TESTERGEBNIS ===');
+            console.log('• Verschlüsselung:', encryptionTest ? '✅ Erfolgreich' : '❌ Fehlgeschlagen');
+            console.log('• Datenbank-Serialisierung:', serializationTest ? '✅ Erfolgreich' : '❌ Fehlgeschlagen');
+
+            if (encryptionTest && serializationTest) {
+                console.log('🎉 Alle Tests erfolgreich bestanden!');
+            }
+        }
+
+        // Konsolen-Befehle für Tests:
+        // runAllTests() - Führt alle Tests aus
+        // testEncryption() - Testet nur Verschlüsselung
+        // testDatabaseSerialization() - Testet nur Datenbank-Serialisierung
 
     </script>
 </body>

@@ -109,7 +109,7 @@ Die Server-Komponente ermöglicht die Synchronisation zwischen mehreren Geräten
 ## Sicherheit
 - **UID-basierte Zugangskontrolle**: Jeder Benutzer braucht eine eindeutige UID
 - **Keine Passwörter**: Einfache Sicherheit durch URL und UID
-- **Keine Verschlüsselung**: Da es sich um nicht-kritische Daten handelt
+- **optionale Verschlüsselung**: Im Dialog für die Serverkonfiguration kann ein Synchronisationsschlüssel hinterlegt werden
 
 ## Server-Setup
 
