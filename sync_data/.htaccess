@@ -1,0 +1,5 @@
+# Verhindert direkten HTTP-Zugriff auf den sync_data-Ordner
+# Server-seitiger PHP-Zugiff von sync.php bleibt erlaubt
+<RequireAll>
+    Require all denied
+</RequireAll>
