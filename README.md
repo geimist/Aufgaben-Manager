@@ -54,9 +54,9 @@ Der **Aufgaben Manager** ist eine intuitive Webanwendung für die Organisation v
 ### Intelligente To-Do-Liste
 - 🎯 **Automatische To-Do-Generierung** aus Events und Tasks
 - 📊 **Status-Übersicht** mit Filteroptionen:
-  - ✅ **Erledigt** (abgeschlossene Aufgaben)
+  - ⚪️ **Erledigt** (abgeschlossene Aufgaben)
   - 🟠 **Anstehend** (kritische/hohe Dringlichkeit)
-  - 🔵 **Offen** (normale Aufgaben)
+  - 🟢 **Offen** (normale Aufgaben)
   - 🔴 **Überfällig** (überfällige Deadlines)
 - 🎨 **Farbkodierung** nach Dringlichkeit
 - 📱 **Responsive Design** für alle Geräte
