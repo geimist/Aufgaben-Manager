@@ -292,6 +292,10 @@
             color: var(--gray);
         }
 
+        .event-hidden {
+            display: none;
+        }
+
         .completed.hidden {
             display: none;
         }
@@ -306,6 +310,24 @@
             background-color: #f8f9fa;
             border-radius: 8px;
             border: 1px solid #e9ecef;
+        }
+
+        .event-header {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .event-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .event-filter-buttons {
+            display: flex;
+            gap: 10px;
         }
 
         .filter-left {
@@ -1162,12 +1184,19 @@
         <div id="status" class="status"></div>
         
         <div class="tab-content active" id="eventsTab">
-            <div class="card">
-                <h2>Events</h2>
-                <button id="addEventBtn" class="btn btn-secondary">Event hinzufügen</button>
-                <div id="eventsTableContainer"></div>
-            </div>
-        </div>
+             <div class="card">
+                 <div class="event-header">
+                     <h2>Events</h2>
+                     <div class="event-actions">
+                         <button id="addEventBtn" class="btn btn-secondary">Event hinzufügen</button>
+                         <div class="event-filter-buttons">
+                             <button type="button" class="filter-btn" data-filter="erledigt" id="filter-event-erledigt">0 Erledigt</button>
+                         </div>
+                     </div>
+                 </div>
+                 <div id="eventsTableContainer"></div>
+             </div>
+         </div>
         
         <div class="tab-content" id="todosTab">
             <div class="card">
@@ -1435,7 +1464,7 @@
         // ============================
 
         // Manuell gepflegte Versionsnummer
-        const APP_VERSION = "1.0.0";
+        const APP_VERSION = "1.0.1";
         const GITHUB_LINK = "https://github.com/geimist/Aufgaben-Manager";
 
         // Anpassbare Dringlichkeit-Schwellenwerte (in Tagen)
@@ -1514,6 +1543,7 @@
         let currentTab = 'todos'; // Standard-Tab
         let activeFilters = ['anstehend', 'ueberfaellig']; // Aktive Filter für Todo-Anzeige (nur dringende als Standard)
         let allTodos = []; // Globale allTodos für Zählungen
+        let hideCompletedEvents = true; // Filter für Event-Liste (true = erledigte Events ausblenden)
 
         // Deaktivierung für wiederholte Sync-Nachfragen
         let syncSuggestionDisabledUntil = null;
@@ -1549,6 +1579,9 @@
                 e.preventDefault();
                 document.getElementById('fileInput').click();
             });
+
+            // Event-Listener für Event-Filter-Button
+            document.getElementById('filter-event-erledigt').addEventListener('click', toggleEventFilter);
 
             // Contact-Funktionalität
             document.getElementById('contactBtn').addEventListener('click', (e) => {
@@ -1721,6 +1754,9 @@
                 eventNameInput.addEventListener('input', setupEventInput);
                 eventNameInput.addEventListener('focus', () => loadEventTypes());
             }
+
+            // Event-Filter-Präferenz laden
+            loadEventFilterPreference();
         });
 
             // Event-Listener für EventType-Feld-Vorschläge
@@ -2112,7 +2148,12 @@
                 
                 // Event-Types für Vorschläge laden
                 loadEventTypes();
-                
+
+                // Event-Filter-Präferenz laden
+                console.log('Initialisierung: Starte loadEventFilterPreference');
+                loadEventFilterPreference();
+                console.log('Initialisierung: loadEventFilterPreference abgeschlossen');
+
                 // Daten für aktuellen Tab laden
                 if (currentTab === 'events') {
                     loadTodos(); // Zuerst Todos laden für allTodos
@@ -2485,6 +2526,49 @@
             }
         }
 
+        // Event-Filter anwenden
+        function applyEventFilter() {
+            if (!db) return;
+
+            const eventRows = document.querySelectorAll('#eventsTableContainer tr');
+            eventRows.forEach(row => {
+                if (row.classList.contains('event-completed')) {
+                    if (hideCompletedEvents) {
+                        row.classList.add('event-hidden');
+                    } else {
+                        row.classList.remove('event-hidden');
+                    }
+                }
+            });
+
+            updateEventFilterButtonStates();
+        }
+
+        // Event-Filter umschalten
+        function toggleEventFilter() {
+            hideCompletedEvents = !hideCompletedEvents;
+            applyEventFilter();
+            saveEventFilterPreference();
+        }
+
+        // Event-Filter-Button-Zustände aktualisieren
+        function updateEventFilterButtonStates() {
+            const button = document.getElementById('filter-event-erledigt');
+
+            if (button) {
+                // Entferne zuerst alle Zustände
+                button.classList.remove('active');
+
+                // Setze den korrekten Zustand
+                if (!hideCompletedEvents) {
+                    button.classList.add('active');
+                }
+
+                // Anzahl der erledigten Events aktualisieren
+                updateEventCompletedCount();
+            }
+        }
+
         // Hilfsfunktion: Prüft, ob ein Todo exportiert wurde
         function isTodoExported(taskId, eventId, occurrenceDate) {
             if (!db) {
@@ -2502,6 +2586,58 @@
                 console.error('Fehler beim Prüfen des Export-Status:', error);
                 return false;
             }
+        }
+
+        // Event-Filter-Präferenz speichern
+        function saveEventFilterPreference() {
+            if (!db) return;
+
+            try {
+                db.run(`
+                    INSERT OR REPLACE INTO metadata (key, value, updated_at)
+                    VALUES ('hide_completed_events', ?, datetime('now'))
+                `, [hideCompletedEvents ? '1' : '0']);
+                saveDatabase();
+            } catch (error) {
+                console.error('Fehler beim Speichern der Event-Filter-Präferenz:', error);
+            }
+        }
+
+        // Event-Filter-Präferenz laden
+        function loadEventFilterPreference() {
+            if (!db) return;
+
+            try {
+                const result = db.exec(`
+                    SELECT value FROM metadata WHERE key = 'hide_completed_events'
+                `);
+                if (result.length > 0 && result[0].values.length > 0) {
+                    hideCompletedEvents = result[0].values[0][0] === '1';
+                }
+            } catch (error) {
+                console.warn('Konnte Event-Filter-Präferenz nicht laden:', error.message);
+            }
+        }
+
+        // Anzahl der erledigten Events zählen
+        function countCompletedEvents() {
+            if (!db) return 0;
+
+            try {
+                const events = document.querySelectorAll('#eventsTableContainer tr.event-completed');
+                return events.length;
+            } catch (error) {
+                return 0;
+            }
+        }
+
+        // Event-Filter-Button-Text mit Anzahl aktualisieren
+        function updateEventCompletedCount() {
+            const button = document.getElementById('filter-event-erledigt');
+            if (!button) return;
+
+            const count = countCompletedEvents();
+            button.textContent = `${count} Erledigt`;
         }
 
         // Events laden und anzeigen
@@ -2550,7 +2686,13 @@
                 
                 html += `</tbody></table>`;
                 container.innerHTML = html;
-                
+
+                // Event-Filter anwenden
+                applyEventFilter();
+
+                // Stelle sicher, dass Button-Zustand korrekt ist
+                setTimeout(() => updateEventFilterButtonStates(), 100);
+
             } catch (error) {
                 console.error('Fehler beim Laden der Events:', error);
                 showStatus('Fehler beim Laden der Events: ' + error.message, 'error');
@@ -3615,6 +3757,11 @@
                 updateTodoCounts(); // Anzahl der Aufgaben nach Statusänderung aktualisieren
                 showStatus('Task-Status aktualisiert', 'success');
 
+                // Event-Filter neu anwenden falls Tab aktiv ist
+                if (currentTab === 'events') {
+                    applyEventFilter();
+                }
+
                 // Sync-Status aktualisieren
                 updateSyncIndicator();
 
@@ -4665,7 +4812,7 @@
                             return;
                         }
                         try {
-                            await downloadDatabaseFromServer();
+                            await downloadDatabaseFromServer(true);  // Automatisch ohne Bestätigung ➜ (true) / mit Nachfrage ➜ ()
                             setTimeout(() => updateSyncIndicator(), 1000);
                         } catch (error) {
                             console.error('Automatischer Download fehlgeschlagen:', error);
