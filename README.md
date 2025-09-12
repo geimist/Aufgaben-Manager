@@ -393,6 +393,10 @@ Response:
 - **CSS3**: Responsive Design und moderne Stile
 - **HTML5**: Semantische Struktur und lokale APIs
 
+99% des Codes wurden KI-basiert generiert
+- IDE: Visual Studio Code (macOS)
+- KI-Implementation mittels [Roo Code](https://roocode.com)
+- LLM: xai/grok-code-fast-1 (RooCode Cloud) / Claude Sonnet-4 ([OpenRouter API](https://openrouter.ai))
 ---
 
 ## 📞 Kontakt
