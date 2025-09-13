@@ -4274,8 +4274,8 @@
 
         // Filter-Funktionen für Todo-Liste
         function setupTodoFilter() {
-            // Event-Listener für Filter-Buttons hinzufügen
-            const filterButtons = document.querySelectorAll('.filter-btn');
+            // Event-Listener für Filter-Buttons hinzufügen (nur Todo-Tab)
+            const filterButtons = document.querySelectorAll('#todosTab .filter-btn');
             filterButtons.forEach(button => {
                 button.addEventListener('click', toggleFilter);
             });
