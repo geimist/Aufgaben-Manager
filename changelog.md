@@ -9,3 +9,4 @@
 ## 1.1.0
 
 - Darkmode implementiert
+- apple-touch-icon (für PWA)
