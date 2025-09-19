@@ -558,6 +558,7 @@
             justify-content: center;
             width: 32px;
             height: 32px;
+            color: var(--text-muted);
         }
         
         .icon-btn:hover {
@@ -667,7 +668,7 @@
             cursor: pointer;
             padding: 10px;
             background: transparent;
-            color: var(--dark);
+            color: var(--text-muted);
             border-radius: 4px;
             display: flex;
             align-items: center;
@@ -901,14 +902,9 @@
             transition: all 0.2s;
             font-size: 0.9em;
         }
-        
+
         .source-link:hover {
             background-color: rgba(52, 152, 219, 0.2);
-        }
-        
-        .source-link::before {
-            content: "🔗";
-            margin-right: 5px;
         }
         
         .tasks-grid {
@@ -986,7 +982,20 @@
         }
 
         /* Mobile Responsivität für Task-Layout */
-        @media (max-width: 667px) {
+        @media (max-width: 480px) {
+            header {
+                justify-content: flex-start !important;
+                flex-wrap: wrap;
+                padding: 15px 0;
+            }
+            
+            h1 {
+                text-align: left !important;
+                font-size: 1.3em;
+                margin: 10px 15px 10px 0;
+                width: 100%;
+            }
+
             .task-row {
                 flex-direction: column;
                 gap: 10px;
@@ -1020,12 +1029,19 @@
             padding: 2px;
             border-radius: 4px;
             transition: all 0.3s;
-            color: #666;
+            color: var(--text-muted);
         }
 
-        .password-toggle-btn:hover {
-            color: #333;
-            background-color: rgba(0, 0, 0, 0.1);
+        .password-toggle-btn:hover,
+        .password-toggle-btn:active {
+            color: var(--text-color);
+        }
+        
+        /* Dark mode fixes */
+        @media (prefers-color-scheme: dark) {
+            .password-toggle-btn svg {
+                stroke: var(--text-color);
+            }
         }
         
         .task-header {
@@ -1227,7 +1243,7 @@
                     <button id="manualSyncBtn" class="sync-btn icon-btn" title="Manueller Sync">🔄</button>
                 </div>
                 <div class="settings-menu">
-                    <button class="icon-btn">⚙️</button>
+                    <button class="icon-btn"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></button>
                     <div class="settings-content">
                         <a href="#" id="importDbBtn">DB importieren</a>
                         <a href="#" id="exportDbBtn">DB exportieren</a>
@@ -1236,7 +1252,7 @@
                         <a href="#" id="uploadSyncBtn">Upload zum Server</a>
                         <a href="#" id="downloadSyncBtn">Download vom Server</a>
                         <a href="#" id="contactBtn">Kontakt</a>
-                        <a href="#" id="toggleThemeBtn">🌙 Dark Theme</a>
+                        <a href="#" id="toggleThemeBtn">Dunkel <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></a>
                         <div id="versionInfo" style="margin-top: 10px; padding: 8px; border-top: 1px solid #ccc; font-size: 12px; color: #666; text-align: center;">
                             <a id="versionLink" href="#" target="_blank" style="color: inherit; text-decoration: none;">Version: <span id="versionNumber"></span></a>
                         </div>
@@ -1440,8 +1456,27 @@
                         <div class="password-input-container" style="position: relative;">
                             <input type="password" id="encryptionKey" placeholder="Optionaler Sicherheitsschlüssel" style="width: 100%; padding-right: 40px;">
                             <button type="button" id="toggleEncryptionKey" class="password-toggle-btn" title="Passwort ein-/ausblenden" style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; padding: 2px;">
-                                👁️
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                             </button>
+                            <script>
+                                (function() {
+                                    const toggleBtn = document.getElementById('toggleEncryptionKey');
+                                    const passwordInput = document.getElementById('encryptionKey');
+                                    
+                                    function handleToggle() {
+                                        const isCurrentlyPassword = passwordInput.type === 'password';
+                                        passwordInput.type = isCurrentlyPassword ? 'text' : 'password';
+                                        toggleBtn.innerHTML = isCurrentlyPassword ? eyeHiddenSVG : eyeVisibleSVG;
+                                        toggleBtn.title = isCurrentlyPassword ? 'Passwort verstecken' : 'Passwort anzeigen';
+                                    }
+                                    
+                                    toggleBtn.addEventListener('click', handleToggle);
+                                    toggleBtn.addEventListener('touchstart', function(e) {
+                                        e.preventDefault();
+                                        handleToggle();
+                                    });
+                                })();
+                            </script>
                         </div>
                         <small style="color: #666; font-size: 12px;">Ein Schlüssel zum Verschlüsseln der Sync-Daten. Leer lassen für unverschlüsselte Synchronisation.</small>
                         <div id="keyHint" style="margin-top: 5px; font-size: 12px; color: #888; display: none;">
@@ -1616,6 +1651,24 @@
         
         let todoCounts = {}; // Globale Zählungen für Filter-Buttons
 
+        // SVG-Symbole für Passwort-Toggle
+        const eyeVisibleSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+        const eyeHiddenSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
+        // SVG-Symbole für Theme-Toggle
+        const sunSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
+        const moonSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
+
+        // SVG-Symbol für wiederkehrend
+        const recurringSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>';
+
+        // SVG-Symbole für Aktionen
+        const editSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>';
+        const duplicateSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>';
+        const deleteSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>';
+        const settingsSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1 1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>';
+        const linkSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 3px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>';
+
         // ============================
         // THEME MANAGEMENT FUNCTIONS
         // ============================
@@ -1651,10 +1704,10 @@
 
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
             if (currentTheme === 'dark') {
-                button.innerHTML = '☀️ Hell';
+                button.innerHTML = 'Hell ' + sunSVG;
                 button.title = 'Zu hellem Theme wechseln';
             } else {
-                button.innerHTML = '🌙 Dunkel';
+                button.innerHTML = 'Dunkel ' + moonSVG;
                 button.title = 'Zu dunklem Theme wechseln';
             }
         }
@@ -2794,9 +2847,9 @@
                             <td>${date}</td>
                             <td>${description || ''}</td>
                             <td>
-                                <button class="icon-btn" onclick="openEventModal(${id})" title="Ereignis bearbeiten">✏️</button>
-                                <button class="icon-btn" onclick="duplicateEvent(${id})" title="Ereignis duplizieren">🔂</button>
-                                <button class="icon-btn" onclick="deleteEvent(${id})" title="Ereignis löschen">🗑️</button>
+                                <button class="icon-btn" onclick="openEventModal(${id})" title="Ereignis bearbeiten">${editSVG}</button>
+                                <button class="icon-btn" onclick="duplicateEvent(${id})" title="Ereignis duplizieren">${duplicateSVG}</button>
+                                <button class="icon-btn" onclick="deleteEvent(${id})" title="Ereignis löschen">${deleteSVG}</button>
                             </td>
                         </tr>
                     `;
@@ -2886,8 +2939,8 @@
                     const hasDetails = description || range || value || unit || source || recurrenceId;
                     const isRecurring = recurrenceId && recurrenceActive;
 
-                    // SYMBOL VOR TITEL: 🔄 für wiederkehrende Tasks
-                    const symbolPrefix = isRecurring ? '🔄 ' : '';
+                    // SYMBOL VOR TITEL: SVG für wiederkehrende Tasks
+                    const symbolPrefix = isRecurring ? recurringSVG + ' ' : '';
 
                     html += `
                         <div class="task-card">
@@ -2897,9 +2950,9 @@
                                     <span class="task-event">${eventType}</span>
                                 </div>
                                 <div class="task-actions">
-                                    <button class="icon-btn" onclick="openTaskModal(${id})" title="Aufgabe bearbeiten">✏️</button>
-                                    <button class="icon-btn" onclick="duplicateTask(${id})" title="Aufgabe duplizieren">🔂</button>
-                                    <button class="icon-btn" onclick="deleteTask(${id})" title="Aufgabe löschen">🗑️</button>
+                                    <button class="icon-btn" onclick="openTaskModal(${id})" title="Aufgabe bearbeiten">${editSVG}</button>
+                                    <button class="icon-btn" onclick="duplicateTask(${id})" title="Aufgabe duplizieren">${duplicateSVG}</button>
+                                    <button class="icon-btn" onclick="deleteTask(${id})" title="Aufgabe löschen">${deleteSVG}</button>
                                 </div>
                             </div>
                             <button class="accordion-toggle" onclick="toggleAccordion(this)">▶ Details</button>
@@ -2911,7 +2964,7 @@
                                 ${source ? `<p><strong>${TEXT_CONFIG.sourceLabel.split(' (')[0]}:</strong> ${isUrl(source) ? `<a href="${source}" target="_blank" class="source-link">${extractDomain(source) || 'Link'}</a>` : source}</p>` : ''}
                                 ${isRecurring ? `
                                     <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;">
-                                    <p><strong style="color: #2563eb;">🔄 Wiederholung aktiviert</strong></p>
+                                    <p><strong style="color: #2563eb;">${recurringSVG} Wiederholung aktiviert</strong></p>
                                     <p><strong>Intervall:</strong> Alle ${intervalValue} ${getLocalizedUnit(intervalUnit)}</p>
                                     ${maxOccurrences && maxOccurrences > 0 ? `<p><strong>Anzahl:</strong> ${maxOccurrences} mal</p>` : '<p><strong>Maximale Häufigkeit:</strong> unbegrenzt</p>'}
                                     ${endDate ? `<p><strong>Enddatum:</strong> ${endDate}</p>` : '<p><strong>Enddatum:</strong> keine Begrenzung</p>'}
@@ -3274,7 +3327,7 @@
                             <li class="todo-item ${isCompleted ? 'completed' : ''}">
                                 <div class="todo-content">
                                     <div class="todo-main">
-                                        <span class="todo-type">${todo.taskType}</span>${todo.isRecurring ? ' <small style="color: #666; font-weight: normal;">🔄 wiederkehrend</small>' : ''}<br>
+                                        <span class="todo-type">${todo.taskType}</span>${todo.isRecurring ? ' <small style="color: #666; font-weight: normal;">' + recurringSVG + ' wiederkehrend</small>' : ''}<br>
                                         <strong>${todo.eventName}</strong> am ${todo.eventDate}${todo.eventDescription ? ` (${todo.eventDescription})` : ''}
                                         ${todo.taskDescription ? `<div class="todo-description">${todo.taskDescription}</div>` : ''}
                                         <div class="todo-date ${getDeadlineUrgencyClass(todo.deadline, isCompleted)}" onclick="downloadTodoICS(${todo.eventId}, ${todo.taskId ? todo.taskId : 'null'}, ${todo.occurrenceDate ? `'${todo.occurrenceDate}'` : 'null'})" style="cursor: pointer;" title="${todo.exported ? 'Kalender wurde bereits exportiert' : 'Als Kalendereintrag exportieren'}" aria-label="Todo als ICS-Datei exportieren">${getCalendarSVGIcon(todo.deadline, isCompleted, todo.exported)}Fällig: ${todo.deadline} ${formatRangeText(todo.range, todo.value, todo.unit)}</div>
@@ -3282,7 +3335,7 @@
                                     ${todo.source ? `
                                         <div class="todo-source">
                                             ${isUrl(todo.source) ?
-                                                `<a href="${todo.source}" target="_blank" class="source-link">${extractDomain(todo.source)}</a>` :
+                                                `<a href="${todo.source}" target="_blank" class="source-link">${linkSVG}${extractDomain(todo.source)}</a>` :
                                                 `<span>${todo.source}</span>`
                                             }
                                         </div>
@@ -4617,10 +4670,15 @@
                 const toggleBtn = document.getElementById('toggleEncryptionKey');
                 const passwordInput = document.getElementById('encryptionKey');
                 if (toggleBtn && passwordInput) {
-                    toggleBtn.addEventListener('click', function() {
+                    toggleBtn.addEventListener('click', function(e) {
+                        console.log('Click event triggered');
+                    });
+                    toggleBtn.addEventListener('touchstart', function(e) {
+                        console.log('Touch event triggered');
+                        e.preventDefault(); // Prevent touch scrolling
                         const isCurrentlyPassword = passwordInput.type === 'password';
                         passwordInput.type = isCurrentlyPassword ? 'text' : 'password';
-                        toggleBtn.textContent = isCurrentlyPassword ? '🙈' : '👁️';
+                        toggleBtn.innerHTML = isCurrentlyPassword ? eyeHiddenSVG : eyeVisibleSVG;
                         toggleBtn.title = isCurrentlyPassword ? 'Passwort verstecken' : 'Passwort anzeigen';
                     });
                 }

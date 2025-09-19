@@ -10,3 +10,4 @@
 
 - Darkmode implementiert
 - apple-touch-icon (für PWA)
+- Icons durch Inline-SVGs ersetzt
