@@ -1,3 +1,5 @@
+![Badge](https://hitscounter.dev/api/hit?url=https%3A%2F%2Fgithub.com%2Fgeimist%2FAufgaben-Manager&label=Visitors&icon=github&color=%23ffc107&message=&style=flat&tz=Europe%2FBerlin)
+
 # 🎯 Aufgaben Manager
 
 > Eine moderne, browser-basierte Task-Management-Anwendung zur effizienten Organisation von Aufgaben und Terminen mit optionaler Cloud-Synchronisation.
