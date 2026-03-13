@@ -35,6 +35,9 @@
             --burger-bg: white;
             --settings-bg: white;
             --filter-bg: #f8f9fa;
+
+            /* Deadline Colors */
+            --deadline-overdue: #8b0000;
         }
 
         /* Dark Theme Override */
@@ -65,6 +68,9 @@
             --burger-bg: #2d2d2d;
             --settings-bg: #2d2d2d;
             --filter-bg: #404040;
+
+            /* Deadline Colors */
+            --deadline-overdue: #ff6b6b;
         }
         
         * {
@@ -781,7 +787,7 @@
 
         /* Deadline Urgency Colors */
         .deadline-overdue {
-            color: #8b0000;
+            color: var(--deadline-overdue);
             font-weight: bold;
             background: linear-gradient(130deg, rgba(235, 77, 75, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
             border-radius: 4px;
@@ -790,7 +796,7 @@
         }
 
         .deadline-critical {
-            color: #8b0000;
+            color: var(--deadline-overdue);
             font-weight: bold;
         }
 
@@ -3798,12 +3804,15 @@
 
             const daysDifference = Math.floor((deadlineDate - today) / (1000 * 60 * 60 * 24));
 
+            // Farbe aus CSS-Variable lesen, Fallback auf #8b0000
+            const overdueColor = getComputedStyle(document.documentElement).getPropertyValue('--deadline-overdue').trim() || '#8b0000';
+
             if (daysDifference < 0) {
                 // Überfällig
-                return '#8b0000'; // dunkelrot
+                return overdueColor;
             } else if (daysDifference <= DEADLINE_CONFIG.critical) {
                 // Kritischer Zeitraum
-                return '#8b0000'; // dunkelrot
+                return overdueColor;
             } else if (daysDifference <= DEADLINE_CONFIG.warning) {
                 // Warning-Bereich
                 return '#f39c12'; // orange
@@ -3830,6 +3839,14 @@
             } else {
                 // Farbe basierend auf Deadline-Status
                 color = getDeadlineColor(deadline, isCompleted);
+            }
+
+            // Für überfällige/kritische Deadlines die CSS-Variable verwenden
+            if (color === '#8b0000') {
+                const overdueColor = getComputedStyle(document.documentElement).getPropertyValue('--deadline-overdue').trim();
+                if (overdueColor) {
+                    color = overdueColor;
+                }
             }
 
             // SVG basierend auf deiner Vorlage
