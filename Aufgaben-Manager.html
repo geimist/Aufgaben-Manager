@@ -1489,6 +1489,15 @@
                             ⚠️ Änderungen des Schlüssels machen alte verschlüsselte Backups unzugänglich
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="exportReminderEnabled" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; cursor: pointer;">
+                            <span style="white-space: nowrap;">Export-Erinnerung aktivieren</span>
+                            <input type="checkbox" id="exportReminderEnabled" checked style="margin: 0; flex-shrink: 0;">
+                        </label>
+                        <small style="color: #666; font-size: 12px;">
+                            Wenn deaktiviert, wird keine regelmäßige Erinnerung zum Datenbank-Export angezeigt.
+                        </small>
+                    </div>
                     <div style="text-align: center; margin-top: 20px;">
                         <button type="submit" class="btn btn-primary">Speichern</button>
                         <button type="button" class="btn btn-outline" onclick="closeServerConfigModal()">Abbrechen</button>
@@ -2189,6 +2198,24 @@
             }
 
             try {
+                // Benutzerpräferenz prüfen (Default: true)
+                const reminderSettingResult = db.exec(`
+                    SELECT value
+                    FROM metadata
+                    WHERE key = 'export_reminder_enabled'
+                `);
+                const exportReminderEnabled = reminderSettingResult.length === 0 ||
+                    reminderSettingResult[0].values.length === 0 ||
+                    reminderSettingResult[0].values[0][0] !== 'false';
+
+                const reminderElement = document.getElementById('exportReminder');
+                if (!exportReminderEnabled) {
+                    if (reminderElement) {
+                        reminderElement.style.display = 'none';
+                    }
+                    return;
+                }
+
                 // Letztes Export-Datum aus Metadata laden
                 const result = db.exec(`
                     SELECT value, updated_at
@@ -2221,7 +2248,6 @@
                 }
 
                 // Banner anzeigen oder ausblenden
-                const reminderElement = document.getElementById('exportReminder');
                 const textElement = document.getElementById('exportReminderText');
 
                 if (shouldShowReminder && reminderElement && textElement) {
@@ -2327,9 +2353,7 @@
                 loadEventTypes();
 
                 // Event-Filter-Präferenz laden
-                console.log('Initialisierung: Starte loadEventFilterPreference');
                 loadEventFilterPreference();
-                console.log('Initialisierung: loadEventFilterPreference abgeschlossen');
 
                 // Daten für aktuellen Tab laden
                 if (currentTab === 'events') {
@@ -2585,6 +2609,7 @@
                             completed_at DATETIME,
                             occurrence_date DATE,        -- Optional: Für wiederkehrende Instanzen
                             recurrence_id INTEGER,       -- Optional: Referenz auf Recurrence
+                            user_note TEXT,              -- Individuelle Notiz des Users
                             PRIMARY KEY (task_id, event_id, occurrence_date),
                             FOREIGN KEY (task_id) REFERENCES tasks(id),
                             FOREIGN KEY (event_id) REFERENCES events(id)
@@ -2600,6 +2625,7 @@
 
                 let hasOccurrenceDate = false;
                 let hasRecurrenceId = false;
+                let hasUserNote = false;
 
                 if (columnExists.length > 0) {
                     const columns = columnExists[0].values;
@@ -2607,9 +2633,18 @@
                         const columnName = column[1]; // Name ist bei Index 1
                         if (columnName === 'occurrence_date') hasOccurrenceDate = true;
                         if (columnName === 'recurrence_id') hasRecurrenceId = true;
+                        if (columnName === 'user_note') hasUserNote = true;
                     }
                 }
 
+                // Migration: user_note Spalte hinzufügen falls sie fehlt
+                if (hasOccurrenceDate && hasRecurrenceId && !hasUserNote) {
+                    try {
+                        db.run('ALTER TABLE completed_tasks ADD COLUMN user_note TEXT');
+                    } catch (e) {
+                        console.error('❌ Fehler beim Hinzufügen der Spalte user_note:', e.message);
+                    }
+                }
 
                 if (!hasOccurrenceDate || !hasRecurrenceId) {
                     // Backup der bestehenden Daten
@@ -2627,6 +2662,7 @@
                             completed_at DATETIME,
                             occurrence_date DATE,        -- Optional: Für wiederkehrende Instanzen
                             recurrence_id INTEGER,       -- Optional: Referenz auf Recurrence
+                            user_note TEXT,              -- Individuelle Notiz des Users
                             PRIMARY KEY (task_id, event_id, occurrence_date),
                             FOREIGN KEY (task_id) REFERENCES tasks(id),
                             FOREIGN KEY (event_id) REFERENCES events(id)
@@ -2639,8 +2675,8 @@
                             const [taskId, eventId, completed, completedAt] = row;
                             db.run(`
                                 INSERT INTO completed_tasks
-                                (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id)
-                                VALUES (?, ?, ?, ?, NULL, NULL)
+                                (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note)
+                                VALUES (?, ?, ?, ?, NULL, NULL, NULL)
                             `, [taskId, eventId, completed, completedAt]);
                         }
                     }
@@ -3018,6 +3054,9 @@
                 // Prüfe, ob Instanz bereits exportiert wurde
                 const exported = isTodoExported(task.taskId, task.eventId, deadline);
 
+                // Lade die Notiz für diese Instanz
+                const userNote = getTodoNote(task.taskId, task.eventId, deadline);
+
                 todos.push({
                     type: 'task',
                     eventId: task.eventId,
@@ -3034,6 +3073,7 @@
                     source: task.source,
                     completed: completed,
                     exported: exported,
+                    userNote: userNote,
                     isRecurring: true,
                     occurrenceDate: deadline, // FIX: occurrence_date ist die deadline
                     recurrenceId: recurrence.id
@@ -3094,6 +3134,31 @@
                 console.error('❌ Fehler bei Todo-Export-Prüfung:', error);
                 console.error('Params:', { taskId, eventId, occurrenceDate });
                 return false; // Export-Status ist nicht kritisch für Funktionalität
+            }
+        }
+
+        // Hilfsfunktion: Lädt die Notiz für eine Todo-Instanz
+        function getTodoNote(taskId, eventId, occurrenceDate) {
+            try {
+                let query, params;
+                
+                if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                    // Wiederkehrende Instanz - prüfe mit occurrence_date
+                    query = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                    params = [taskId, eventId, occurrenceDate];
+                } else {
+                    // Normaler Task - prüfe ohne occurrence_date
+                    query = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                    params = [taskId, eventId];
+                }
+                
+                const result = db.exec(query, params);
+                const userNote = (result.length > 0 && result[0].values.length > 0) ? result[0].values[0][0] : null;
+                return userNote || '';
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Notiz:', error);
+                console.error('Params:', { taskId, eventId, occurrenceDate });
+                return '';
             }
         }
 
@@ -3217,6 +3282,8 @@
                                 WHERE event_id = ? AND task_id = ? AND start_date = ?
                             `, [eventId, taskId, deadline])[0]?.values.length > 0;
 
+                            // Notiz für normale Tasks laden
+                            const normalTaskNote = getTodoNote(taskId, eventId, null);
 
                             allTodos.push({
                                 type: 'task',
@@ -3233,7 +3300,8 @@
                                 unit: unit,
                                 source: source,
                                 completed: normalTaskCompleted, // Verwende korrekt ermittelten Status
-                                exported: normalTaskExported
+                                exported: normalTaskExported,
+                                userNote: normalTaskNote
                             });
                         }
                     }
@@ -3346,6 +3414,17 @@
                                             }
                                         </div>
                                     ` : ''}
+                                    <div class="todo-note" style="margin-top: 10px;">
+                                        <textarea
+                                            class="todo-note-input"
+                                            placeholder="Notiz hinzufügen ..."
+                                            data-task-id="${todo.taskId}"
+                                            data-event-id="${todo.eventId}"
+                                            ${todo.occurrenceDate ? `data-occurrence-date="${todo.occurrenceDate}"` : ''}
+                                            onblur="saveTaskNote(this)"
+                                            style="width: 100%; min-height: 40px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; font-family: inherit; resize: vertical; background-color: var(--input-bg); color: var(--text-color);"
+                                        >${todo.userNote || ''}</textarea>
+                                    </div>
                                 </div>
                                 <div class="todo-actions">
                                       <input type="checkbox" class="todo-checkbox"
@@ -3904,37 +3983,73 @@
             const completed = checkbox.checked ? 1 : 0;
             const occurrenceDate = checkbox.dataset.occurrenceDate; // Neu für wiederkehrende Tasks
 
-
-
             try {
                 // VERBESSERTE ROBUST HANDLING für occurrence_date
                 if (completed) {
                     if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
-                        // WIEDERKEHRENDE INSTANZ: Speichere mit occurrence_date
-
-                        const query = 'INSERT OR REPLACE INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id) VALUES (?, ?, ?, datetime("now"), ?, NULL)';
-                        db.run(query, [taskId, eventId, completed, occurrenceDate]);
-
+                        // WIEDERKEHRENDE INSTANZ: Prüfe ob Eintrag existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                        const existing = db.exec(checkQuery, [taskId, eventId, occurrenceDate]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            // UPDATE mit Beibehaltung der user_note
+                            const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = datetime("now") WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                            db.run(updateQuery, [completed, taskId, eventId, occurrenceDate]);
+                        } else {
+                            // INSERT mit default user_note NULL
+                            const insertQuery = 'INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note) VALUES (?, ?, ?, datetime("now"), ?, NULL, NULL)';
+                            db.run(insertQuery, [taskId, eventId, completed, occurrenceDate]);
+                        }
                     } else {
-                        // NORMALER TASK: Speichere ohne occurrence_date (NULL)
-
-                        const query = 'INSERT OR REPLACE INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id) VALUES (?, ?, ?, datetime("now"), NULL, NULL)';
-                        db.run(query, [taskId, eventId, completed]);
-
+                        // NORMALER TASK: Prüfe ob Eintrag existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                        const existing = db.exec(checkQuery, [taskId, eventId]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            // UPDATE mit Beibehaltung der user_note
+                            const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = datetime("now") WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                            db.run(updateQuery, [completed, taskId, eventId]);
+                        } else {
+                            // INSERT mit default user_note NULL
+                            const insertQuery = 'INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note) VALUES (?, ?, ?, datetime("now"), NULL, NULL, NULL)';
+                            db.run(insertQuery, [taskId, eventId, completed]);
+                        }
                     }
                 } else {
                     if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
-                        // WIEDERKEHRENDE INSTANZ: Lösche mit occurrence_date
-
-                        const query = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
-                        db.run(query, [taskId, eventId, occurrenceDate]);
-
+                        // WIEDERKEHRENDE INSTANZ: Prüfe ob Eintrag mit Notiz existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                        const existing = db.exec(checkQuery, [taskId, eventId, occurrenceDate]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            const userNote = existing[0].values[0][0];
+                            if (userNote !== null) {
+                                // Notiz vorhanden – UPDATE auf completed = 0, completed_at = NULL
+                                const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = NULL WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                                db.run(updateQuery, [completed, taskId, eventId, occurrenceDate]);
+                            } else {
+                                // Keine Notiz – DELETE
+                                const deleteQuery = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                                db.run(deleteQuery, [taskId, eventId, occurrenceDate]);
+                            }
+                        } else {
+                            // Kein Eintrag – nichts zu tun
+                        }
                     } else {
-                        // NORMALER TASK: Lösche ohne occurrence_date
-
-                        const query = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
-                        db.run(query, [taskId, eventId]);
-
+                        // NORMALER TASK: Prüfe ob Eintrag mit Notiz existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                        const existing = db.exec(checkQuery, [taskId, eventId]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            const userNote = existing[0].values[0][0];
+                            if (userNote !== null) {
+                                // Notiz vorhanden – UPDATE auf completed = 0, completed_at = NULL
+                                const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = NULL WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                                db.run(updateQuery, [completed, taskId, eventId]);
+                            } else {
+                                // Keine Notiz – DELETE
+                                const deleteQuery = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                                db.run(deleteQuery, [taskId, eventId]);
+                            }
+                        } else {
+                            // Kein Eintrag – nichts zu tun
+                        }
                     }
                 }
 
@@ -3975,6 +4090,70 @@
             }
         }
         
+        // Notiz für einen Deadline-Eintrag speichern
+        function saveTaskNote(textarea) {
+            if (!db) return;
+
+            const taskId = textarea.dataset.taskId;
+            const eventId = textarea.dataset.eventId;
+            const occurrenceDate = textarea.dataset.occurrenceDate;
+            const noteText = textarea.value.trim();
+
+            try {
+                // Prüfe ob bereits ein Eintrag in completed_tasks existiert
+                let query, params;
+                
+                if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                    // Wiederkehrende Instanz
+                    query = 'SELECT * FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                    params = [taskId, eventId, occurrenceDate];
+                } else {
+                    // Normaler Task
+                    query = 'SELECT * FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                    params = [taskId, eventId];
+                }
+
+                const existingEntry = db.exec(query, params);
+
+                if (existingEntry.length > 0 && existingEntry[0].values.length > 0) {
+                    // Eintrag existiert bereits - UPDATE
+                    if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                        db.run(`UPDATE completed_tasks SET user_note = ? WHERE task_id = ? AND event_id = ? AND occurrence_date = ?`,
+                            [noteText || null, taskId, eventId, occurrenceDate]);
+                    } else {
+                        db.run(`UPDATE completed_tasks SET user_note = ? WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL`,
+                            [noteText || null, taskId, eventId]);
+                    }
+                } else {
+                    // Noch kein Eintrag - INSERT mit completed = 0
+                    if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                        db.run(`INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note)
+                                VALUES (?, ?, 0, NULL, ?, NULL, ?)`,
+                            [taskId, eventId, occurrenceDate, noteText || null]);
+                    } else {
+                        db.run(`INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note)
+                                VALUES (?, ?, 0, NULL, NULL, NULL, ?)`,
+                            [taskId, eventId, noteText || null]);
+                    }
+                }
+
+                saveDatabase(true); // Echte Datenänderung - Notiz gespeichert
+                
+                // Visuelles Feedback
+                textarea.style.borderColor = 'var(--secondary)';
+                setTimeout(() => {
+                    textarea.style.borderColor = '';
+                }, 500);
+
+                // Sync-Status aktualisieren
+                updateSyncIndicator();
+
+            } catch (error) {
+                console.error('❌ Fehler beim Speichern der Notiz:', error);
+                showStatus('Fehler beim Speichern der Notiz: ' + error.message, 'error');
+            }
+        }
+
         // Event-Modal öffnen
         function openEventModal(eventId = null) {
             // Vorschläge laden, falls noch nicht geschehen
@@ -4674,24 +4853,27 @@
                 const encryptionKeyResult = db.exec(`
                     SELECT value FROM metadata WHERE key = 'encryption_key'
                 `);
+                const exportReminderEnabledResult = db.exec(`
+                    SELECT value FROM metadata WHERE key = 'export_reminder_enabled'
+                `);
 
                 const serverUrl = serverUrlResult.length > 0 ? serverUrlResult[0].values[0][0] : '';
                 const userUid = userUidResult.length > 0 ? userUidResult[0].values[0][0] : '';
                 const encryptionKey = encryptionKeyResult.length > 0 ? encryptionKeyResult[0].values[0][0] : '';
+                const exportReminderEnabled = exportReminderEnabledResult.length === 0 ||
+                    exportReminderEnabledResult[0].values.length === 0 ||
+                    exportReminderEnabledResult[0].values[0][0] !== 'false';
 
                 document.getElementById('serverUrl').value = serverUrl;
                 document.getElementById('userUid').value = userUid;
                 document.getElementById('encryptionKey').value = encryptionKey;
+                document.getElementById('exportReminderEnabled').checked = exportReminderEnabled;
 
                 // Password Toggle Setup
                 const toggleBtn = document.getElementById('toggleEncryptionKey');
                 const passwordInput = document.getElementById('encryptionKey');
                 if (toggleBtn && passwordInput) {
-                    toggleBtn.addEventListener('click', function(e) {
-                        console.log('Click event triggered');
-                    });
                     toggleBtn.addEventListener('touchstart', function(e) {
-                        console.log('Touch event triggered');
                         e.preventDefault(); // Prevent touch scrolling
                         const isCurrentlyPassword = passwordInput.type === 'password';
                         passwordInput.type = isCurrentlyPassword ? 'text' : 'password';
@@ -4733,6 +4915,7 @@
             const userUid = document.getElementById('userUid').value;
             const deviceName = document.getElementById('deviceName').value.trim();
             const encryptionKey = document.getElementById('encryptionKey').value.trim();
+            const exportReminderEnabled = document.getElementById('exportReminderEnabled').checked;
 
             try {
                 // Server-Konfiguration in Metadata speichern
@@ -4745,6 +4928,11 @@
                     INSERT OR REPLACE INTO metadata (key, value, updated_at)
                     VALUES ('user_uid', ?, datetime('now'))
                 `, [userUid]);
+
+                db.run(`
+                    INSERT OR REPLACE INTO metadata (key, value, updated_at)
+                    VALUES ('export_reminder_enabled', ?, datetime('now'))
+                `, [exportReminderEnabled ? 'true' : 'false']);
 
                 // Verschlüsselungs-Key speichern (leer = keine Verschlüsselung)
                 if (encryptionKey) {
@@ -4776,6 +4964,9 @@
 
                 // Sync-Status aktualisieren (neue Konfiguration)
                 updateSyncIndicator();
+
+                // Export-Reminder entsprechend der neuen Einstellung aktualisieren
+                checkAndShowExportReminder();
 
                 // Kontakt-Button-Sichtbarkeit aktualisieren
                 updateContactVisibility();
@@ -6030,98 +6221,6 @@
                 showStatus('Fehler beim Senden der Nachricht: ' + error.message, 'error');
             }
         }
-
-        // ============================
-        // TEST-FUNKTIONEN FÜR VERSCHLÜSSELUNG
-        // ============================
-
-        // Test der Verschlüsselung/Entschlüsselung
-        async function testEncryption() {
-            try {
-                const testKey = 'meinTestPasswort123';
-                const testData = 'Hello, verschlüsselte Welt!';
-                console.log('=== Verschlüsselungs-Test ===');
-                console.log('Original-Daten:', testData);
-
-                // Verschlüsseln
-                const encrypted = await encryptData(testData, testKey);
-                console.log('Verschlüsselte Daten:', encrypted);
-
-                // Entschlüsseln
-                const decrypted = await decryptData(encrypted, testKey);
-                console.log('Entschlüsselte Daten:', decrypted);
-
-                // Prüfen ob identisch
-                if (testData === decrypted) {
-                    console.log('✅ Verschlüsselung/Entschlüsselung erfolgreich!');
-                    return true;
-                } else {
-                    console.error('❌ Daten stimmen nicht überein!');
-                    return false;
-                }
-            } catch (error) {
-                console.error('❌ Verschlüsselungs-Test fehlgeschlagen:', error);
-                return false;
-            }
-        }
-
-        // Test der Datenbank-Serialisierung mit Verschlüsselung
-        async function testDatabaseSerialization() {
-            try {
-                console.log('=== Datenbank-Serialisierung-Test ===');
-
-                // Konfiguration setzen für Test
-                db.run(`INSERT OR REPLACE INTO metadata (key, value, updated_at) VALUES ('encryption_key', 'testkey123', datetime('now'))`);
-
-                // Serialisierung testen
-                const serialized = await serializeDatabaseAsJSON();
-                console.log('Serialisierte Daten enthalten Verschlüsselung:', serialized.encrypted);
-
-                // Deserialisierung testen
-                const deserialized = await deserializeDatabaseFromJSON(serialized);
-                console.log('✅ Datenbank-Serialisierung/Deserialisierung erfolgreich!');
-
-                // Test-Key zurücksetzen
-                db.run(`DELETE FROM metadata WHERE key = 'encryption_key'`);
-
-                return true;
-            } catch (error) {
-                console.error('❌ Datenbank-Serialisierung-Test fehlgeschlagen:', error);
-                return false;
-            }
-        }
-
-        // Alle Tests ausführen (im Browser-Konsole aufrufen)
-        async function runAllTests() {
-            console.log('=== STARTE INTEGRATIONSTESTS FÜR VERSCHLÜSSELUNG ===');
-
-            let encryptionTest = false;
-            let serializationTest = false;
-
-            try {
-                if (db) {
-                    encryptionTest = await testEncryption();
-                    serializationTest = await testDatabaseSerialization();
-                } else {
-                    console.warn('⚠️ Datenbank nicht verfügbar - überspringe Tests');
-                }
-            } catch (error) {
-                console.error('❌ Fehler beim Testen:', error);
-            }
-
-            console.log('\n=== TESTERGEBNIS ===');
-            console.log('• Verschlüsselung:', encryptionTest ? '✅ Erfolgreich' : '❌ Fehlgeschlagen');
-            console.log('• Datenbank-Serialisierung:', serializationTest ? '✅ Erfolgreich' : '❌ Fehlgeschlagen');
-
-            if (encryptionTest && serializationTest) {
-                console.log('🎉 Alle Tests erfolgreich bestanden!');
-            }
-        }
-
-        // Konsolen-Befehle für Tests:
-        // runAllTests() - Führt alle Tests aus
-        // testEncryption() - Testet nur Verschlüsselung
-        // testDatabaseSerialization() - Testet nur Datenbank-Serialisierung
 
     </script>
 </body>
