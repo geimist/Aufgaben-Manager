@@ -11,3 +11,9 @@
 - Darkmode implementiert
 - apple-touch-icon (für PWA)
 - Icons durch Inline-SVGs ersetzt
+
+## 1.2.0
+
+- Deadline-Einträgen können jetzt individuelle Notizen hinzugefügt werden
+- die regelmäßige Exporterinnerung kann in den Server-Einstellungen deaktiviert werden
+- 
