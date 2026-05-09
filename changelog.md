@@ -16,4 +16,5 @@
 
 - Deadline-Einträgen können jetzt individuelle Notizen hinzugefügt werden
 - die regelmäßige Exporterinnerung kann in den Server-Einstellungen deaktiviert werden
-- 
+- Menüpunkte zum manuellen Up- und Download wurden in den Versionsexplorer verschoben
+- Die Schwellwerte für die Zeiträume können jetzt über das Menü konfiguriert werden "Deadline-Schwellen"
