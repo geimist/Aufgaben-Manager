@@ -715,7 +715,45 @@
             background-color: #f5f5f5;
             color: var(--primary);
         }
-        
+
+        .reload-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin-left: 8px;
+            padding: 4px;
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            border-radius: 50%;
+            color: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .reload-btn:hover,
+        .reload-btn:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary);
+            outline: none;
+        }
+
+        .reload-btn:active {
+            transform: scale(0.92);
+        }
+
+        .reload-btn.spinning svg {
+            animation: reloadSpin 0.8s linear infinite;
+        }
+
+        @keyframes reloadSpin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
         .todo-list {
             list-style: none;
             padding: 0;
@@ -1440,6 +1478,9 @@
                         <a href="#" id="toggleThemeBtn">Dunkel <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></a>
                         <div id="versionInfo" style="margin-top: 10px; padding: 8px; border-top: 1px solid #ccc; font-size: 12px; color: #666; text-align: center;">
                             <a id="versionLink" href="#" target="_blank" style="color: inherit; text-decoration: none;">Version: <span id="versionNumber"></span></a>
+                            <button type="button" id="reloadAppBtn" class="reload-btn" title="App neu vom Server laden" aria-label="App neu vom Server laden">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2190,6 +2231,7 @@
         function setupBurgerMenu() {
             const burgerMenu = document.querySelector('.burger-menu');
             const burgerContent = document.querySelector('.burger-content');
+            const burgerIcon = document.querySelector('.burger-icon');
             let hideTimeout;
 
             if (!burgerMenu || !burgerContent) return;
@@ -2218,6 +2260,20 @@
                 }, 300); // 300ms Verzögerung
             });
 
+            // Click-Toggle auf dem Burger-Icon: Touch-Geräte (iOS Safari) feuern
+            // bei "Hover-Preview"-Elementen den ersten Tap nur als mouseenter und
+            // den zweiten als click ohne sichtbaren Effekt, weil bisher nur Hover
+            // das Menü gesteuert hat. Ein expliziter Toggle macht das Menü auf
+            // Touch tippbar und stört den Desktop-Hover nicht.
+            if (burgerIcon) {
+                burgerIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearTimeout(hideTimeout);
+                    const isOpen = burgerContent.style.display === 'block';
+                    burgerContent.style.display = isOpen ? 'none' : 'block';
+                });
+            }
+
             // Click-Outside-Handling: Schließe Menü bei Klick außerhalb
             document.addEventListener('click', (e) => {
                 if (!burgerMenu.contains(e.target)) {
@@ -2231,6 +2287,7 @@
         function setupSettingsMenu() {
             const settingsMenu = document.querySelector('.settings-menu');
             const settingsContent = document.querySelector('.settings-content');
+            const settingsTrigger = settingsMenu ? settingsMenu.querySelector('.icon-btn') : null;
             let hideTimeout;
 
             if (!settingsMenu || !settingsContent) return;
@@ -2265,6 +2322,20 @@
                 }, 300); // 300ms Verzögerung
             });
 
+            // Click-Toggle auf dem Settings-Icon: Touch-Geräte (iOS Safari) feuern
+            // bei "Hover-Preview"-Elementen den ersten Tap nur als mouseenter und
+            // den zweiten als click ohne sichtbaren Effekt, weil bisher nur Hover
+            // das Menü gesteuert hat. Ein expliziter Toggle macht das Menü auf
+            // Touch tippbar und stört den Desktop-Hover nicht.
+            if (settingsTrigger) {
+                settingsTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearTimeout(hideTimeout);
+                    const isOpen = settingsContent.style.display === 'block';
+                    settingsContent.style.display = isOpen ? 'none' : 'block';
+                });
+            }
+
             // Click-Outside-Handling: Schließe Menü bei Klick außerhalb
             document.addEventListener('click', (e) => {
                 if (!settingsMenu.contains(e.target)) {
@@ -2285,6 +2356,36 @@
             const versionLink = document.getElementById('versionLink');
             if (versionLink) {
                 versionLink.href = GITHUB_LINK;
+            }
+
+            // Reload-Button: erzwingt Hard-Reload mit Cache-Buster (z. B. iOS Webclip umgeht so den Safari-Cache)
+            const reloadBtn = document.getElementById('reloadAppBtn');
+            if (reloadBtn && !reloadBtn.dataset.bound) {
+                reloadBtn.dataset.bound = '1';
+                reloadBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!confirm('App neu vom Server laden?\nDeine Aufgaben und Einstellungen bleiben erhalten.')) return;
+
+                    reloadBtn.classList.add('spinning');
+                    reloadBtn.disabled = true;
+
+                    // Vorsorglich: falls jemals Service Worker / Caches dazukommen
+                    try {
+                        if ('caches' in window) {
+                            const keys = await caches.keys();
+                            await Promise.all(keys.map(k => caches.delete(k)));
+                        }
+                    } catch (_) { /* ignorieren */ }
+
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('_v', Date.now().toString());
+                        window.location.replace(url.toString());
+                    } catch (_) {
+                        window.location.reload();
+                    }
+                });
             }
 
             // Burger-Menü Texte aktualisieren - VERBESSERT: Verwende textContent statt innerHTML um data-attributs nicht zu zerstören
@@ -4766,16 +4867,14 @@
 
                 const globalAllTodos = window.allTodos || allTodos;
                 if (globalAllTodos && globalAllTodos.length > 0) {
-                    // Verwende globale allTodos für korrekte Zählung (inkl. wiederkehrender Instanzen)
+                    // Filter über eventId (nicht eventName!), sonst werden ToDos
+                    // gleichnamiger Ereignisse fälschlich mitgezählt.
                     const eventTodos = globalAllTodos.filter(todo =>
                         todo.type === 'task' &&
-                        todo.eventName === eventName &&
+                        todo.eventId === id &&
                         !todo.completed
                     );
                     unfinishedCount = eventTodos.length;
-
-                    
-                    // Event-Details für Bestätigung verfügbar
                 } else {
                     // Fallback zu Datenbank-Query (ohne wiederkehrende Instanzen)
 
