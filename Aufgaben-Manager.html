@@ -372,11 +372,71 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
             padding: 10px 15px;
             background-color: var(--filter-bg);
             border-radius: 8px;
             border: 1px solid var(--border-color);
+        }
+
+        .live-filter {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 220px;
+            flex: 0 1 280px;
+        }
+
+        .live-filter input[type="text"] {
+            width: 100%;
+            padding: 8px 32px 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 13px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .live-filter input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+        }
+
+        .live-filter-clear {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background-color: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            opacity: 0.65;
+            transition: opacity 0.2s ease, background-color 0.2s ease;
+        }
+
+        .live-filter-clear:hover,
+        .live-filter-clear:focus-visible {
+            opacity: 1;
+            background-color: var(--border-color);
+            outline: none;
+        }
+
+        .live-filter-clear[hidden] {
+            display: none;
         }
 
         .event-header {
@@ -1514,6 +1574,12 @@
                         <button type="button" class="filter-btn" data-filter="offen" id="filter-offen">0 Offen</button>
                         <button type="button" class="filter-btn active" data-filter="ueberfaellig" id="filter-ueberfaellig">0 Überfällig</button>
                     </div>
+                    <div class="live-filter">
+                        <input type="text" id="todoLiveFilter" placeholder="Deadlines filtern …" autocomplete="off" aria-label="Deadlines nach Titel filtern">
+                        <button type="button" id="todoLiveFilterClear" class="live-filter-clear" aria-label="Filter zurücksetzen" title="Filter zurücksetzen" hidden>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
                 </div>
                 <div id="todosContainer"></div>
             </div>
@@ -1524,7 +1590,12 @@
                  <h2>Tasks</h2>
                  <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
                      <button id="addTaskBtn" class="btn btn-secondary" style="align-self: flex-start;">Task hinzufügen</button>
-                     <input type="text" id="taskFilter" placeholder="Aufgaben filtern..." style="flex: 1; margin-bottom: 0;">
+                     <div class="live-filter" style="flex: 1 1 auto;">
+                         <input type="text" id="taskFilter" placeholder="Aufgaben filtern..." autocomplete="off" aria-label="Aufgaben filtern">
+                         <button type="button" id="taskFilterClear" class="live-filter-clear" aria-label="Filter zurücksetzen" title="Filter zurücksetzen" hidden>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                         </button>
+                     </div>
                  </div>
                  <div id="tasksContainer" class="tasks-grid"></div>
              </div>
@@ -1938,6 +2009,7 @@
         let eventTypes = [];
         let currentTab = 'todos'; // Standard-Tab
         let activeFilters = ['anstehend', 'ueberfaellig']; // Aktive Filter für Todo-Anzeige (nur dringende als Standard)
+        let todoTitleFilter = ''; // Live-Textfilter für die Deadlines-Ansicht (nur clientseitige Sichtbarkeit)
         let allTodos = []; // Globale allTodos für Zählungen
         let hideCompletedEvents = true; // Filter für Event-Liste (true = erledigte Events ausblenden)
 
@@ -2063,9 +2135,52 @@
             document.getElementById('fileInput').addEventListener('change', importDatabase);
             document.getElementById('addEventBtn').addEventListener('click', () => openEventModal());
             document.getElementById('addTaskBtn').addEventListener('click', () => openTaskModal());
-            document.getElementById('taskFilter').addEventListener('input', function() {
+            const taskFilterInput = document.getElementById('taskFilter');
+            const taskFilterClear = document.getElementById('taskFilterClear');
+            taskFilterInput.addEventListener('input', function() {
+                if (taskFilterClear) {
+                    taskFilterClear.hidden = this.value.length === 0;
+                }
                 loadTasks(this.value);
             });
+            if (taskFilterClear) {
+                taskFilterClear.addEventListener('click', () => {
+                    taskFilterInput.value = '';
+                    taskFilterClear.hidden = true;
+                    taskFilterInput.focus();
+                    loadTasks('');
+                });
+                taskFilterInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && taskFilterInput.value !== '') {
+                        e.preventDefault();
+                        taskFilterClear.click();
+                    }
+                });
+            }
+
+            // Live-Filter für Deadlines-Ansicht (rein clientseitig, ohne DB-Änderung)
+            const liveFilterInput = document.getElementById('todoLiveFilter');
+            const liveFilterClear = document.getElementById('todoLiveFilterClear');
+            if (liveFilterInput && liveFilterClear) {
+                liveFilterInput.addEventListener('input', () => {
+                    todoTitleFilter = liveFilterInput.value.trim();
+                    liveFilterClear.hidden = todoTitleFilter.length === 0;
+                    applyTodoFilters();
+                });
+                liveFilterClear.addEventListener('click', () => {
+                    liveFilterInput.value = '';
+                    todoTitleFilter = '';
+                    liveFilterClear.hidden = true;
+                    liveFilterInput.focus();
+                    applyTodoFilters();
+                });
+                liveFilterInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && liveFilterInput.value !== '') {
+                        e.preventDefault();
+                        liveFilterClear.click();
+                    }
+                });
+            }
 
             // Server-Sync Event-Listener
             document.getElementById('serverConfigBtn').addEventListener('click', (e) => {
@@ -5105,12 +5220,13 @@
 
         function applyTodoFilters() {
             const todoItems = document.querySelectorAll('.todo-item');
+            const needle = (todoTitleFilter || '').trim().toLowerCase();
 
             todoItems.forEach(item => {
                 const li = item.closest('li');
                 if (!li) return;
 
-                let shouldShow = false;
+                let shouldShowStatus = false;
 
                 // Prüfen, ob es eine .todo-main Klasse gibt (normale Todo)
                 const todoMain = item.querySelector('.todo-main');
@@ -5140,12 +5256,32 @@
                     }
 
                     // Prüfen, ob dieser Status in den aktiven Filtern ist
-                    shouldShow = activeFilters.includes(todoStatus) ||
+                    shouldShowStatus = activeFilters.includes(todoStatus) ||
                                (todoStatus === 'event' && activeFilters.length === 0); // Events immer anzeigen wenn keine Filter aktiv
                 } else {
                     // Andere Elemente immer anzeigen
-                    shouldShow = true;
+                    shouldShowStatus = true;
                 }
+
+                // Live-Textfilter: Event-Name + Task-Typ (bzw. nur Event-Name bei "no-tasks-warning")
+                let shouldShowTitle = true;
+                if (needle) {
+                    let titleText = '';
+                    if (item.classList.contains('no-tasks-warning')) {
+                        const eventStrong = item.querySelector('strong');
+                        if (eventStrong) titleText = eventStrong.textContent;
+                    } else if (todoMain) {
+                        const taskTypeEl = todoMain.querySelector('.todo-type');
+                        const eventStrong = todoMain.querySelector('strong');
+                        titleText = [
+                            taskTypeEl ? taskTypeEl.textContent : '',
+                            eventStrong ? eventStrong.textContent : ''
+                        ].join(' ');
+                    }
+                    shouldShowTitle = titleText.toLowerCase().includes(needle);
+                }
+
+                const shouldShow = shouldShowStatus && shouldShowTitle;
 
                 // Anzeige umschalten
                 if (shouldShow) {
