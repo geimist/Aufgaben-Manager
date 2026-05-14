@@ -5263,22 +5263,18 @@
                     shouldShowStatus = true;
                 }
 
-                // Live-Textfilter: Event-Name + Task-Typ (bzw. nur Event-Name bei "no-tasks-warning")
+                // Live-Textfilter: gesamten sichtbaren Text des Eintrags durchsuchen
+                // (Task-Typ, Event-Name, Event-Datum, Beschreibungen, Quelle, Fälligkeit, Notiz)
                 let shouldShowTitle = true;
                 if (needle) {
-                    let titleText = '';
-                    if (item.classList.contains('no-tasks-warning')) {
-                        const eventStrong = item.querySelector('strong');
-                        if (eventStrong) titleText = eventStrong.textContent;
-                    } else if (todoMain) {
-                        const taskTypeEl = todoMain.querySelector('.todo-type');
-                        const eventStrong = todoMain.querySelector('strong');
-                        titleText = [
-                            taskTypeEl ? taskTypeEl.textContent : '',
-                            eventStrong ? eventStrong.textContent : ''
-                        ].join(' ');
+                    let haystack = item.textContent || '';
+                    // Aktueller Notiz-Wert: textContent enthält nur den initialen Wert eines <textarea>,
+                    // nicht den später getippten Inhalt – daher explizit anhängen.
+                    const noteInput = item.querySelector('.todo-note-input');
+                    if (noteInput && noteInput.value) {
+                        haystack += ' ' + noteInput.value;
                     }
-                    shouldShowTitle = titleText.toLowerCase().includes(needle);
+                    shouldShowTitle = haystack.toLowerCase().includes(needle);
                 }
 
                 const shouldShow = shouldShowStatus && shouldShowTitle;
