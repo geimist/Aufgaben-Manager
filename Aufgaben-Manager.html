@@ -381,6 +381,44 @@
             border: 1px solid var(--border-color);
         }
 
+        .todo-filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1 1 auto;
+            justify-content: flex-end;
+        }
+
+        .todo-filter-actions .live-filter {
+            flex: 1 1 220px;
+            max-width: 280px;
+        }
+
+        .todo-item.manual-deadline .todo-type {
+            font-weight: 600;
+        }
+
+        .manual-deadline-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .manual-deadline-edit {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--text-muted);
+            line-height: 0;
+        }
+
+        .manual-deadline-edit:hover {
+            color: var(--primary);
+        }
+
         .live-filter {
             position: relative;
             display: flex;
@@ -1566,7 +1604,7 @@
         
         <div class="tab-content" id="todosTab">
             <div class="card">
-                <h2>To-Dos für Events</h2>
+                <h2>Deadlines</h2>
                 <div class="todo-filter">
                     <div class="filter-buttons">
                         <button type="button" class="filter-btn" data-filter="erledigt" id="filter-erledigt">0 Erledigt</button>
@@ -1574,11 +1612,15 @@
                         <button type="button" class="filter-btn" data-filter="offen" id="filter-offen">0 Offen</button>
                         <button type="button" class="filter-btn active" data-filter="ueberfaellig" id="filter-ueberfaellig">0 Überfällig</button>
                     </div>
-                    <div class="live-filter">
-                        <input type="text" id="todoLiveFilter" placeholder="Deadlines filtern …" autocomplete="off" aria-label="Deadlines nach Titel filtern">
-                        <button type="button" id="todoLiveFilterClear" class="live-filter-clear" aria-label="Filter zurücksetzen" title="Filter zurücksetzen" hidden>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
+                    <div class="todo-filter-actions">
+                        <button type="button" id="addManualDeadlineBtn" class="btn btn-secondary">manuelle Deadline</button>
+                        <button type="button" id="deleteCompletedManualBtn" class="btn btn-outline" hidden title="Alle erledigten manuellen Deadlines löschen">Erledigte manuelle löschen (0)</button>
+                        <div class="live-filter">
+                            <input type="text" id="todoLiveFilter" placeholder="Deadlines filtern …" autocomplete="off" aria-label="Deadlines nach Titel filtern">
+                            <button type="button" id="todoLiveFilterClear" class="live-filter-clear" aria-label="Filter zurücksetzen" title="Filter zurücksetzen" hidden>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div id="todosContainer"></div>
@@ -1798,6 +1840,38 @@
             </div>
         </div>
 
+        <div id="manualDeadlineModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="manualDeadlineModalTitle">Manuelle Deadline hinzufügen</h2>
+                    <span class="close" id="manualDeadlineModalClose">&times;</span>
+                </div>
+                <form id="manualDeadlineForm">
+                    <input type="hidden" id="manualDeadlineId">
+                    <div class="form-group">
+                        <label for="manualDeadlineTitle">Titel</label>
+                        <input type="text" id="manualDeadlineTitle" required autocomplete="off" placeholder="z. B. Sonderaufgabe planen">
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDeadlineDueDate">Fälligkeitsdatum</label>
+                        <input type="date" id="manualDeadlineDueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDeadlineDescription">Beschreibung</label>
+                        <textarea id="manualDeadlineDescription" rows="3" placeholder="Optional"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDeadlineSource">Quelle / Link</label>
+                        <input type="text" id="manualDeadlineSource" placeholder="Optional: URL oder Hinweis">
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button type="button" class="btn btn-outline" onclick="closeManualDeadlineModal()">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div id="deadlineConfigModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
@@ -1881,7 +1955,7 @@
                       <h2 id="confirmModalTitle">Bestätigung</h2>
                       <span class="close" id="confirmModalClose">&times;</span>
                   </div>
-                  <div id="confirmModalMessage" style="margin-bottom: 20px;">Möchtest du das wirklich tun?</div>
+                  <div id="confirmModalMessage" style="margin-bottom: 20px; white-space: pre-line;">Möchtest du das wirklich tun?</div>
                   <div style="text-align: center;">
                       <button id="confirmBtn" class="btn btn-primary" style="margin-right: 10px;">Ja</button>
                       <button id="cancelBtn" class="btn btn-outline">Nein</button>
@@ -2018,6 +2092,9 @@
         const DISABLE_DURATION_MS = 5 * 60 * 1000; // 5 Minuten
         
         let todoCounts = {}; // Globale Zählungen für Filter-Buttons
+        let manualCompletedCount = 0; // Anzahl erledigter manueller Deadlines
+        let autoUploadPausedAfterFailure = false;
+        let pendingAutoSyncTimeout = null;
 
         // SVG-Symbole für Passwort-Toggle
         const eyeVisibleSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
@@ -2191,6 +2268,14 @@
                 e.preventDefault();
                 openDeadlineConfigModal();
             });
+            document.getElementById('addManualDeadlineBtn').addEventListener('click', () => {
+                openManualDeadlineModal();
+            });
+            document.getElementById('deleteCompletedManualBtn').addEventListener('click', () => {
+                deleteCompletedManualDeadlines();
+            });
+            document.getElementById('manualDeadlineForm').addEventListener('submit', saveManualDeadline);
+            document.getElementById('manualDeadlineModalClose').addEventListener('click', closeManualDeadlineModal);
             document.getElementById('backupVersionsBtn').addEventListener('click', (e) => {
                 e.preventDefault();
                 openBackupVersionsModal();
@@ -2774,6 +2859,7 @@
                 // Lokale Änderungen nur bei echten Datenänderungen tracken (nicht bei Reloads)
                 if (updateLocalChange) {
                     const now = new Date().toISOString();
+                    autoUploadPausedAfterFailure = false;
 
                     // FIX: Auch im localStorage den Modifikationszeitpunkt speichern
                     localStorage.setItem('todoManagerDB_modified', now);
@@ -2800,6 +2886,7 @@
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 db = new SQL.Database(new Uint8Array(arrayBuffer));
+                createTablesIfNeeded();
                 
                 // Datenbank speichern
                 saveDatabase();
@@ -3024,6 +3111,24 @@
                 )
             `);
 
+            // Tabelle für manuelle Deadlines (unabhängig von Events/Tasks)
+            db.run(`
+                CREATE TABLE IF NOT EXISTS manual_deadlines (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    uuid TEXT UNIQUE NOT NULL,
+                    title TEXT NOT NULL,
+                    due_date DATE NOT NULL,
+                    description TEXT,
+                    source TEXT,
+                    completed BOOLEAN DEFAULT 0,
+                    completed_at DATETIME,
+                    user_note TEXT,
+                    exported_at DATETIME,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+
             // Metadata-Tabelle für Export-Erinnerungen und Server-Konfiguration
             db.run(`
                 CREATE TABLE IF NOT EXISTS metadata (
@@ -3041,6 +3146,18 @@
             db.run(`
                 CREATE INDEX IF NOT EXISTS idx_calendar_todos_uuid
                 ON calendar_todos(uuid)
+            `);
+            db.run(`
+                CREATE INDEX IF NOT EXISTS idx_manual_deadlines_due
+                ON manual_deadlines(due_date)
+            `);
+            db.run(`
+                CREATE INDEX IF NOT EXISTS idx_manual_deadlines_completed
+                ON manual_deadlines(completed)
+            `);
+            db.run(`
+                CREATE INDEX IF NOT EXISTS idx_manual_deadlines_uuid
+                ON manual_deadlines(uuid)
             `);
 
             // Datenbank speichern
@@ -3747,12 +3864,7 @@
                 const result = db.exec(query);
                 const container = document.getElementById('todosContainer');
 
-                if (result.length === 0) {
-                    container.innerHTML = '<p>Keine To-Dos gefunden</p>';
-                    return;
-                }
-
-                const todos = result[0].values;
+                const todos = (result.length > 0) ? result[0].values : [];
 
                 // Sammle alle Todos (Tasks und Events ohne Tasks)
                 let allTodos = [];
@@ -3866,6 +3978,39 @@
                     }
                 });
 
+                // Manuelle Deadlines laden
+                manualCompletedCount = 0;
+                try {
+                    const manualResult = db.exec(`
+                        SELECT id, uuid, title, due_date, description, source, completed, user_note, exported_at
+                        FROM manual_deadlines
+                    `);
+                    if (manualResult.length > 0 && manualResult[0].values.length > 0) {
+                        manualResult[0].values.forEach(row => {
+                            const [id, uuid, title, dueDate, description, source, completed, userNote, exportedAt] = row;
+                            const isCompleted = completed === 1;
+                            if (isCompleted) {
+                                manualCompletedCount++;
+                            }
+                            allTodos.push({
+                                type: 'manual',
+                                manualId: id,
+                                uuid: uuid,
+                                title: title,
+                                deadline: dueDate,
+                                description: description,
+                                source: source,
+                                completed: isCompleted,
+                                userNote: userNote,
+                                exported: exportedAt != null && exportedAt !== ''
+                            });
+                        });
+                    }
+                } catch (manualError) {
+                    console.warn('Manuelle Deadlines konnten nicht geladen werden:', manualError.message);
+                }
+                window.manualCompletedCount = manualCompletedCount;
+
                 // Alle Todos sortieren (älteste zuerst)
                 allTodos.sort((a, b) => {
                     return new Date(a.deadline) - new Date(b.deadline);
@@ -3964,6 +4109,49 @@
                                   </div>
                             </li>
                         `;
+                    } else if (todo.type === 'manual') {
+                        const isCompleted = todo.completed;
+                        const safeTitle = escapeHtml(todo.title);
+                        const safeDescription = todo.description ? escapeHtml(todo.description) : '';
+                        const safeNote = todo.userNote ? escapeHtml(todo.userNote) : '';
+
+                        html += `
+                            <li class="todo-item manual-deadline ${isCompleted ? 'completed' : ''}" data-manual-id="${todo.manualId}">
+                                <div class="todo-content">
+                                    <div class="todo-main">
+                                        <span class="todo-type">${safeTitle} <small style="color: #666; font-weight: normal;">(Manuelle Deadline)</small></span><br>
+                                        ${safeDescription ? `<div class="todo-description">${safeDescription}</div>` : ''}
+                                        <div class="todo-date ${getDeadlineUrgencyClass(todo.deadline, isCompleted)}" onclick="downloadManualDeadlineICS(${todo.manualId})" style="cursor: pointer;" title="${todo.exported ? 'Kalender wurde bereits exportiert' : 'Als Kalendereintrag exportieren'}" aria-label="Manuelle Deadline als ICS-Datei exportieren">${getCalendarSVGIcon(todo.deadline, isCompleted, todo.exported)}Fällig: ${todo.deadline}</div>
+                                    </div>
+                                    ${todo.source ? `
+                                        <div class="todo-source">
+                                            ${isUrl(todo.source) ?
+                                                `<a href="${String(todo.source).replace(/"/g, '&quot;')}" target="_blank" class="source-link">${linkSVG}${extractDomain(todo.source)}</a>` :
+                                                `<span>${escapeHtml(todo.source)}</span>`
+                                            }
+                                        </div>
+                                    ` : ''}
+                                    <div class="todo-note" style="margin-top: 10px;">
+                                        <textarea
+                                            class="todo-note-input"
+                                            placeholder="Notiz hinzufügen ..."
+                                            data-manual-id="${todo.manualId}"
+                                            onblur="saveManualDeadlineNote(this)"
+                                            style="width: 100%; min-height: 40px; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 13px; font-family: inherit; resize: vertical; background-color: var(--input-bg); color: var(--text-color);"
+                                        >${safeNote}</textarea>
+                                    </div>
+                                </div>
+                                <div class="todo-actions manual-deadline-actions">
+                                    <button type="button" class="manual-deadline-edit" onclick="openManualDeadlineModal(${todo.manualId})" title="Bearbeiten" aria-label="Manuelle Deadline bearbeiten">${editSVG}</button>
+                                    <input type="checkbox" class="todo-checkbox"
+                                        data-manual-id="${todo.manualId}"
+                                        ${isCompleted ? 'checked' : ''}
+                                        onchange="toggleManualDeadlineCompletion(this)"
+                                        title="Als erledigt markieren"
+                                        aria-label="Manuelle Deadline als erledigt markieren">
+                                </div>
+                            </li>
+                        `;
                     } else if (todo.type === 'event') {
                         // Event ohne Task - angezeigt wie vorher als Warnung
                         html += `
@@ -3978,7 +4166,7 @@
                 });
 
                 if (allTodos.length === 0) {
-                    html = '<p>Keine To-Dos oder Events gefunden</p>';
+                    html = '<p>Keine Deadlines gefunden</p>';
                 }
 
                 container.innerHTML = html;
@@ -3989,6 +4177,7 @@
 
                 // Anzahl der Aufgaben aktualisieren
                 updateTodoCounts();
+                updateManualDeadlineCleanupButton();
 
             } catch (error) {
                 console.error('Fehler beim Laden der To-Dos:', error);
@@ -4004,6 +4193,15 @@
             } catch (_) {
                 return false;
             }
+        }
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
         }
 
         // Domain aus URL extrahieren
@@ -4680,6 +4878,259 @@
             }
         }
 
+        // ============================
+        // MANUELLE DEADLINES
+        // ============================
+
+        function openManualDeadlineModal(manualId = null) {
+            if (!db) return;
+
+            const modal = document.getElementById('manualDeadlineModal');
+            const titleEl = document.getElementById('manualDeadlineModalTitle');
+            const form = document.getElementById('manualDeadlineForm');
+            const idField = document.getElementById('manualDeadlineId');
+
+            form.reset();
+            idField.value = manualId || '';
+
+            if (manualId) {
+                titleEl.textContent = 'Manuelle Deadline bearbeiten';
+                const result = db.exec(`
+                    SELECT title, due_date, description, source
+                    FROM manual_deadlines
+                    WHERE id = ?
+                `, [manualId]);
+
+                if (result.length === 0 || result[0].values.length === 0) {
+                    showStatus('Manuelle Deadline nicht gefunden', 'error');
+                    return;
+                }
+
+                const [title, dueDate, description, source] = result[0].values[0];
+                document.getElementById('manualDeadlineTitle').value = title || '';
+                document.getElementById('manualDeadlineDueDate').value = dueDate || '';
+                document.getElementById('manualDeadlineDescription').value = description || '';
+                document.getElementById('manualDeadlineSource').value = source || '';
+            } else {
+                titleEl.textContent = 'Manuelle Deadline hinzufügen';
+            }
+
+            modal.style.display = 'flex';
+            document.getElementById('manualDeadlineTitle').focus();
+        }
+
+        function closeManualDeadlineModal() {
+            document.getElementById('manualDeadlineModal').style.display = 'none';
+        }
+
+        function saveManualDeadline(event) {
+            event.preventDefault();
+            if (!db) return;
+
+            const manualId = document.getElementById('manualDeadlineId').value;
+            const title = document.getElementById('manualDeadlineTitle').value.trim();
+            const dueDate = document.getElementById('manualDeadlineDueDate').value;
+            const description = document.getElementById('manualDeadlineDescription').value.trim();
+            const source = document.getElementById('manualDeadlineSource').value.trim();
+
+            if (!title || !dueDate) {
+                showStatus('Titel und Fälligkeitsdatum sind erforderlich', 'error');
+                return;
+            }
+
+            try {
+                if (manualId) {
+                    db.run(`
+                        UPDATE manual_deadlines
+                        SET title = ?, due_date = ?, description = ?, source = ?, updated_at = datetime('now')
+                        WHERE id = ?
+                    `, [title, dueDate, description || null, source || null, manualId]);
+                    showStatus('Manuelle Deadline aktualisiert', 'success');
+                } else {
+                    const uuid = generateUUID();
+                    db.run(`
+                        INSERT INTO manual_deadlines
+                        (uuid, title, due_date, description, source, completed, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))
+                    `, [uuid, title, dueDate, description || null, source || null]);
+                    showStatus('Manuelle Deadline erstellt', 'success');
+                }
+
+                saveDatabase(true);
+                closeManualDeadlineModal();
+                loadTodos();
+                updateSyncIndicator();
+            } catch (error) {
+                console.error('Fehler beim Speichern der manuellen Deadline:', error);
+                showStatus('Fehler beim Speichern: ' + error.message, 'error');
+            }
+        }
+
+        function toggleManualDeadlineCompletion(checkbox) {
+            if (!db) return;
+
+            const manualId = checkbox.dataset.manualId;
+            const completed = checkbox.checked ? 1 : 0;
+
+            try {
+                if (completed) {
+                    db.run(`
+                        UPDATE manual_deadlines
+                        SET completed = 1, completed_at = datetime('now'), updated_at = datetime('now')
+                        WHERE id = ?
+                    `, [manualId]);
+                } else {
+                    db.run(`
+                        UPDATE manual_deadlines
+                        SET completed = 0, completed_at = NULL, updated_at = datetime('now')
+                        WHERE id = ?
+                    `, [manualId]);
+                }
+
+                saveDatabase(true);
+                loadTodos();
+                updateTodoCounts();
+                updateSyncIndicator();
+                showStatus('Status der manuellen Deadline aktualisiert', 'success');
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren der manuellen Deadline:', error);
+                showStatus('Fehler: ' + error.message, 'error');
+                checkbox.checked = !checkbox.checked;
+            }
+        }
+
+        function saveManualDeadlineNote(textarea) {
+            if (!db) return;
+
+            const manualId = textarea.dataset.manualId;
+            const noteText = textarea.value.trim();
+
+            try {
+                db.run(`
+                    UPDATE manual_deadlines
+                    SET user_note = ?, updated_at = datetime('now')
+                    WHERE id = ?
+                `, [noteText || null, manualId]);
+
+                saveDatabase(true);
+                textarea.style.borderColor = 'var(--secondary)';
+                setTimeout(() => {
+                    textarea.style.borderColor = '';
+                }, 500);
+                updateSyncIndicator();
+            } catch (error) {
+                console.error('Fehler beim Speichern der Notiz:', error);
+                showStatus('Fehler beim Speichern der Notiz: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteCompletedManualDeadlines() {
+            if (!db) return;
+
+            const count = manualCompletedCount || window.manualCompletedCount || 0;
+            if (count === 0) return;
+
+            const confirmed = await customConfirm(
+                `Alle ${count} erledigten manuellen Deadlines unwiderruflich löschen?\n\nDie Aktion betrifft alle erledigten manuellen Einträge, unabhängig vom Textfilter.`,
+                'Erledigte manuelle Deadlines löschen'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                db.run('DELETE FROM manual_deadlines WHERE completed = 1');
+                saveDatabase(true);
+                loadTodos();
+                updateSyncIndicator();
+                showStatus(`${count} erledigte manuelle Deadline(s) gelöscht`, 'success');
+            } catch (error) {
+                console.error('Fehler beim Löschen erledigter manueller Deadlines:', error);
+                showStatus('Fehler beim Löschen: ' + error.message, 'error');
+            }
+        }
+
+        function updateManualDeadlineCleanupButton() {
+            const btn = document.getElementById('deleteCompletedManualBtn');
+            if (!btn) return;
+
+            const count = manualCompletedCount || 0;
+            const show = activeFilters.includes('erledigt') && count > 0;
+            btn.hidden = !show;
+            btn.textContent = `Erledigte manuelle löschen (${count})`;
+        }
+
+        function generateManualICSContent(uuid, manualId) {
+            const result = db.exec(`
+                SELECT title, due_date, description, source
+                FROM manual_deadlines
+                WHERE id = ?
+            `, [manualId]);
+
+            if (result.length === 0 || result[0].values.length === 0) {
+                throw new Error('Manuelle Deadline nicht gefunden');
+            }
+
+            const [title, dueDate, description, source] = result[0].values[0];
+
+            let ics = `BEGIN:VCALENDAR\r\n`;
+            ics += `VERSION:2.0\r\n`;
+            ics += `PRODID:-//ToDo Manager//ICS Export//EN\r\n`;
+            ics += `METHOD:PUBLISH\r\n`;
+            ics += `BEGIN:VEVENT\r\n`;
+            ics += `UID:${uuid}\r\n`;
+            ics += `DTSTAMP:${new Date().toISOString().replace(/[:-]/g, '').replace(/\.\d{3}/, '')}Z\r\n`;
+            ics += `DTSTART;VALUE=DATE:${dueDate.replace(/-/g, '')}\r\n`;
+            ics += `DTEND;VALUE=DATE:${dueDate.replace(/-/g, '')}\r\n`;
+            ics += `SUMMARY:${(title || 'Manuelle Deadline').replace(/[\\;,\n]/g, '\\$&')}\r\n`;
+
+            if (description && description.trim()) {
+                const escapedDesc = description.replace(/\n/g, '\\n').replace(/[\\;]/g, '\\$&');
+                ics += `DESCRIPTION:${escapedDesc}\r\n`;
+            }
+
+            if (source && source.trim()) {
+                ics += `URL:${source}\r\n`;
+            }
+
+            ics += `END:VEVENT\r\n`;
+            ics += `END:VCALENDAR\r\n`;
+            return ics;
+        }
+
+        function downloadManualDeadlineICS(manualId) {
+            try {
+                const result = db.exec(`
+                    SELECT uuid, title, due_date
+                    FROM manual_deadlines
+                    WHERE id = ?
+                `, [manualId]);
+
+                if (result.length === 0 || result[0].values.length === 0) {
+                    throw new Error('Manuelle Deadline nicht gefunden');
+                }
+
+                const [uuid, title, dueDate] = result[0].values[0];
+                const icsContent = generateManualICSContent(uuid, manualId);
+                const safeNamePart = (title || 'Manuelle_Deadline').replace(/[^a-zA-Z0-9_-]/g, '_');
+                const filename = `${safeNamePart}_${dueDate}.ics`;
+
+                db.run(`
+                    UPDATE manual_deadlines
+                    SET exported_at = datetime('now'), updated_at = datetime('now')
+                    WHERE id = ?
+                `, [manualId]);
+
+                downloadFile(filename, icsContent);
+                showStatus('ICS-Datei erfolgreich exportiert', 'success');
+                saveDatabase(true);
+                loadTodos();
+                updateSyncIndicator();
+            } catch (error) {
+                console.error('Fehler beim ICS-Export:', error);
+                showStatus('Fehler beim ICS-Export: ' + error.message, 'error');
+            }
+        }
+
         // Event-Modal öffnen
         function openEventModal(eventId = null) {
             // Vorschläge laden, falls noch nicht geschehen
@@ -5173,7 +5624,8 @@
 
             updateFilterButtonStates();
             applyTodoFilters();
-            updateTodoCounts(); // Anzahl der Aufgaben aktualisieren
+            updateTodoCounts();
+            updateManualDeadlineCleanupButton();
         }
 
         function toggleFilter() {
@@ -5191,6 +5643,7 @@
             }
 
             applyTodoFilters();
+            updateManualDeadlineCleanupButton();
         }
 
         function getTodoStatusClass(todo) {
@@ -5866,14 +6319,21 @@
                         manualBtn.title = 'Upload zur Datenbank';
                     }
                     // AUTOMATISCHER UPLOAD: Nach kurzer Verzögerung automatisch ausführen
-                    setTimeout(async () => {
-                        try {
-                            await uploadDatabaseToServer();
-                            setTimeout(() => updateSyncIndicator(), 1000);
-                        } catch (error) {
-                            console.error('Automatischer Upload fehlgeschlagen:', error);
-                        }
-                    }, 500); // 500ms Verzögerung für bessere UX
+                    if (autoUploadPausedAfterFailure) {
+                        // Nach einem fehlgeschlagenen Auto-Upload nur noch manuell erneut versuchen.
+                    } else if (!pendingAutoSyncTimeout) {
+                        pendingAutoSyncTimeout = setTimeout(async () => {
+                            pendingAutoSyncTimeout = null;
+                            try {
+                                const success = await uploadDatabaseToServer();
+                                if (success) {
+                                    setTimeout(() => updateSyncIndicator(), 1000);
+                                }
+                            } catch (error) {
+                                console.error('Automatischer Upload fehlgeschlagen:', error);
+                            }
+                        }, 500);
+                    }
                     break;
 
                 case 'download_needed':
@@ -5886,18 +6346,20 @@
                         manualBtn.title = 'Download vom Server';
                     }
                     // AUTOMATISCHER DOWNLOAD: Nach kurzer Verzögerung automatisch ausführen
-                    setTimeout(async () => {
-                        // NEU: Vor Automatik: Prüfe Deaktivierung
-                        if (syncSuggestionDisabledUntil && Date.now() < syncSuggestionDisabledUntil) {
-                            return;
-                        }
-                        try {
-                            await downloadDatabaseFromServer(true);  // Automatisch ohne Bestätigung ➜ (true) / mit Nachfrage ➜ ()
-                            setTimeout(() => updateSyncIndicator(), 1000);
-                        } catch (error) {
-                            console.error('Automatischer Download fehlgeschlagen:', error);
-                        }
-                    }, 500); // 500ms Verzögerung für bessere UX
+                    if (!pendingAutoSyncTimeout) {
+                        pendingAutoSyncTimeout = setTimeout(async () => {
+                            pendingAutoSyncTimeout = null;
+                            if (syncSuggestionDisabledUntil && Date.now() < syncSuggestionDisabledUntil) {
+                                return;
+                            }
+                            try {
+                                await downloadDatabaseFromServer(true);
+                                setTimeout(() => updateSyncIndicator(), 1000);
+                            } catch (error) {
+                                console.error('Automatischer Download fehlgeschlagen:', error);
+                            }
+                        }, 500);
+                    }
                     break;
 
                 case 'conflict':
@@ -5922,14 +6384,16 @@
                         manualBtn.title = 'Ersten Upload';
                     }
                     // AUTOMATISCHER ERSTER UPLOAD: Nach kurzer Verzögerung automatisch ausführen
-                    setTimeout(async () => {
-                        try {
-                            await confirmNoServerDataUpload();
-                            setTimeout(() => updateSyncIndicator(), 1000);
-                        } catch (error) {
-                            console.error('Automatischer erster Upload fehlgeschlagen:', error);
-                        }
-                    }, 500); // 500ms Verzögerung für bessere UX
+                    if (!pendingAutoSyncTimeout) {
+                        pendingAutoSyncTimeout = setTimeout(async () => {
+                            pendingAutoSyncTimeout = null;
+                            try {
+                                await confirmNoServerDataUpload();
+                            } catch (error) {
+                                console.error('Automatischer erster Upload fehlgeschlagen:', error);
+                            }
+                        }, 500);
+                    }
                     break;
 
                 case 'error':
@@ -5958,9 +6422,10 @@
                 existingBtn.parentNode.replaceChild(newManualBtn, existingBtn);
                 newManualBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    await actionFunction();
-                    // Nach Aktion Status neu prüfen
-                    setTimeout(() => updateSyncIndicator(), 1000);
+                    const result = await actionFunction();
+                    if (result !== false) {
+                        setTimeout(() => updateSyncIndicator(), 1000);
+                    }
                 });
             }
 
@@ -6326,7 +6791,7 @@
             result.set(new Uint8Array(encrypted), salt.length + iv.length);
 
             // Base64 für JSON-Transport
-            return btoa(String.fromCharCode.apply(null, result));
+            return arrayBufferToBase64(result);
         }
 
         // Daten entschlüsseln
@@ -6439,10 +6904,10 @@
                 // Datenbank-Tabellen verifizieren
                 const tables = newDb.exec(`
                     SELECT name FROM sqlite_master
-                    WHERE type='table' AND name IN ('events', 'tasks', 'completed_tasks', 'metadata', 'calendar_todos')
+                    WHERE type='table' AND name IN ('events', 'tasks', 'completed_tasks', 'metadata', 'calendar_todos', 'manual_deadlines', 'task_recurrences')
                 `);
 
-                if (tables.length === 0 || tables[0].values.length < 4) {
+                if (tables.length === 0 || tables[0].values.length < 5) {
                     throw new Error('Ungültige Datenbankstruktur in heruntergeladenen Daten');
                 }
 
@@ -6460,12 +6925,13 @@
         // Datenbank zum Server hochladen
         async function uploadDatabaseToServer() {
             const config = getServerConfig();
-            if (!config) return;
+            if (!config) return false;
 
             try {
                 showStatus('Lade Datenbank zum Server hoch...', 'info');
 
                 const jsonData = await serializeDatabaseAsJSON();
+
                 const payload = {
                     action: 'upload',
                     uid: config.uid,
@@ -6475,8 +6941,7 @@
                 const response = await fetch(config.url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
@@ -6488,9 +6953,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Sync-Zeitpunkt aktualisieren und lokale Änderungszeit zurücksetzen
                     const now = new Date().toISOString();
-                    
 
                     db.run(`
                         INSERT OR REPLACE INTO metadata (key, value, updated_at)
@@ -6503,16 +6966,19 @@
                     `, [now]);
 
                     saveDatabase();
-                    
 
                     showStatus('Datenbank erfolgreich zum Server hochgeladen', 'success');
+                    autoUploadPausedAfterFailure = false;
+                    return true;
                 } else {
                     throw new Error(result.message || 'Unbekannter Fehler beim Upload');
                 }
 
             } catch (error) {
                 console.error('Fehler beim Hochladen:', error);
+                autoUploadPausedAfterFailure = true;
                 showStatus(`Fehler beim Hochladen: ${error.message}`, 'error');
+                return false;
             }
         }
 
@@ -6532,8 +6998,7 @@
                 const response = await fetch(config.url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
@@ -6567,6 +7032,7 @@
 
                         // Datenbank ersetzen
                         db = serverData.db;
+                        createTablesIfNeeded();
 
                         // Datenbank speichern und neu laden
                         saveDatabase();
@@ -6628,6 +7094,12 @@
         document.getElementById('deadlineConfigModal').addEventListener('click', (e) => {
             if (e.target === document.getElementById('deadlineConfigModal')) {
                 closeDeadlineConfigModal();
+            }
+        });
+
+        document.getElementById('manualDeadlineModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('manualDeadlineModal')) {
+                closeManualDeadlineModal();
             }
         });
 

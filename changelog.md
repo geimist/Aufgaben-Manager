@@ -19,3 +19,4 @@
 - Menüpunkte zum manuellen Up- und Download wurden in den Versionsexplorer verschoben
 - Die Schwellwerte für die Zeiträume können jetzt über das Menü konfiguriert werden "Deadline-Schwellen"
 - Live-Filter für Deadline-Ansicht
+- Möglichkeit für manuelle Deadline-Einträge eingebaut
