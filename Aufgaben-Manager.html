@@ -35,6 +35,9 @@
             --burger-bg: white;
             --settings-bg: white;
             --filter-bg: #f8f9fa;
+
+            /* Deadline Colors */
+            --deadline-overdue: #8b0000;
         }
 
         /* Dark Theme Override */
@@ -65,6 +68,9 @@
             --burger-bg: #2d2d2d;
             --settings-bg: #2d2d2d;
             --filter-bg: #404040;
+
+            /* Deadline Colors */
+            --deadline-overdue: #ff6b6b;
         }
         
         * {
@@ -258,6 +264,20 @@
             outline: none;
             box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
         }
+
+        .todo-note-input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 13px;
+            font-family: inherit;
+            resize: none;
+            overflow-y: hidden;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            field-sizing: content;
+        }
         
         .modal {
             display: none;
@@ -366,11 +386,109 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
             margin-bottom: 20px;
             padding: 10px 15px;
             background-color: var(--filter-bg);
             border-radius: 8px;
             border: 1px solid var(--border-color);
+        }
+
+        .todo-filter-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            flex: 1 1 auto;
+            justify-content: flex-end;
+        }
+
+        .todo-filter-actions .live-filter {
+            flex: 1 1 220px;
+            max-width: 280px;
+        }
+
+        .todo-item.manual-deadline .todo-type {
+            font-weight: 600;
+        }
+
+        .manual-deadline-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .manual-deadline-edit {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            color: var(--text-muted);
+            line-height: 0;
+        }
+
+        .manual-deadline-edit:hover {
+            color: var(--primary);
+        }
+
+        .live-filter {
+            position: relative;
+            display: flex;
+            align-items: center;
+            min-width: 220px;
+            flex: 0 1 280px;
+        }
+
+        .live-filter input[type="text"] {
+            width: 100%;
+            padding: 8px 32px 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            background-color: var(--input-bg);
+            color: var(--text-color);
+            font-size: 13px;
+            font-family: inherit;
+            box-sizing: border-box;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .live-filter input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+        }
+
+        .live-filter-clear {
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 22px;
+            height: 22px;
+            padding: 0;
+            border: none;
+            border-radius: 50%;
+            background-color: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            opacity: 0.65;
+            transition: opacity 0.2s ease, background-color 0.2s ease;
+        }
+
+        .live-filter-clear:hover,
+        .live-filter-clear:focus-visible {
+            opacity: 1;
+            background-color: var(--border-color);
+            outline: none;
+        }
+
+        .live-filter-clear[hidden] {
+            display: none;
         }
 
         .event-header {
@@ -709,7 +827,45 @@
             background-color: #f5f5f5;
             color: var(--primary);
         }
-        
+
+        .reload-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            vertical-align: middle;
+            margin-left: 8px;
+            padding: 4px;
+            width: 24px;
+            height: 24px;
+            background: transparent;
+            border: none;
+            border-radius: 50%;
+            color: inherit;
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .reload-btn:hover,
+        .reload-btn:focus {
+            background-color: var(--hover-bg);
+            color: var(--primary);
+            outline: none;
+        }
+
+        .reload-btn:active {
+            transform: scale(0.92);
+        }
+
+        .reload-btn.spinning svg {
+            animation: reloadSpin 0.8s linear infinite;
+        }
+
+        @keyframes reloadSpin {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+
         .todo-list {
             list-style: none;
             padding: 0;
@@ -781,7 +937,7 @@
 
         /* Deadline Urgency Colors */
         .deadline-overdue {
-            color: #8b0000;
+            color: var(--deadline-overdue);
             font-weight: bold;
             background: linear-gradient(130deg, rgba(235, 77, 75, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
             border-radius: 4px;
@@ -790,7 +946,7 @@
         }
 
         .deadline-critical {
-            color: #8b0000;
+            color: var(--deadline-overdue);
             font-weight: bold;
         }
 
@@ -823,6 +979,186 @@
             100% {
                 box-shadow: 0 0 0 0 rgba(235, 77, 75, 0.4);
                 background: linear-gradient(130deg, rgba(235, 77, 75, 0.1) 0%, rgba(255, 0, 0, 0.05) 100%);
+            }
+        }
+
+        /* Deadline Config Modal: visueller Zeitstrahl mit drei Slidern */
+        .deadline-config-track-wrapper {
+            margin: 36px 8px 8px 8px;
+        }
+
+        .deadline-config-track {
+            position: relative;
+            height: 28px;
+            border-radius: 6px;
+            background: var(--filter-bg);
+            box-shadow: inset 0 0 0 1px var(--border-color);
+        }
+
+        .deadline-config-segment {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            transition: left 80ms linear, width 80ms linear;
+        }
+
+        .deadline-config-segment[data-zone="critical"] {
+            background: var(--deadline-overdue);
+            border-top-left-radius: 6px;
+            border-bottom-left-radius: 6px;
+        }
+
+        .deadline-config-segment[data-zone="warning"] {
+            background: #f39c12;
+        }
+
+        .deadline-config-segment[data-zone="soon"] {
+            background: #f1c40f;
+        }
+
+        .deadline-config-segment[data-zone="normal"] {
+            background: #27ae60;
+            border-top-right-radius: 6px;
+            border-bottom-right-radius: 6px;
+        }
+
+        /* Range-Inputs liegen unsichtbar überlagert; nur die Daumen sind interaktiv. */
+        .deadline-config-slider {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            width: 100%;
+            height: 28px;
+            margin: 0;
+            padding: 0;
+            background: transparent;
+            -webkit-appearance: none;
+            appearance: none;
+            pointer-events: none;
+            outline: none;
+        }
+
+        .deadline-config-slider::-webkit-slider-runnable-track {
+            background: transparent;
+            height: 28px;
+            border: none;
+        }
+
+        .deadline-config-slider::-moz-range-track {
+            background: transparent;
+            height: 28px;
+            border: none;
+        }
+
+        .deadline-config-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            pointer-events: auto;
+            cursor: grab;
+            width: 18px;
+            height: 36px;
+            margin-top: -4px;
+            border-radius: 4px;
+            background: var(--card-bg);
+            border: 2px solid var(--text-color);
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+
+        .deadline-config-slider::-webkit-slider-thumb:active {
+            cursor: grabbing;
+        }
+
+        .deadline-config-slider::-moz-range-thumb {
+            pointer-events: auto;
+            cursor: grab;
+            width: 18px;
+            height: 36px;
+            border-radius: 4px;
+            background: var(--card-bg);
+            border: 2px solid var(--text-color);
+            box-shadow: 0 1px 3px var(--shadow);
+        }
+
+        .deadline-config-slider:focus::-webkit-slider-thumb {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        }
+
+        .deadline-config-slider:focus::-moz-range-thumb {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.25);
+        }
+
+        .deadline-config-thumb-label {
+            position: absolute;
+            top: -26px;
+            transform: translateX(-50%);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-color);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 2px 6px;
+            white-space: nowrap;
+            pointer-events: none;
+            box-shadow: 0 1px 2px var(--shadow);
+        }
+
+        .deadline-config-axis {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        .deadline-config-legend {
+            list-style: none;
+            margin: 20px 0 0 0;
+            padding: 0;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 6px;
+        }
+
+        .deadline-config-legend li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-color);
+        }
+
+        .deadline-config-swatch {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1);
+        }
+
+        .deadline-config-swatch[data-zone="overdue"] {
+            background: var(--deadline-overdue);
+            animation: deadline-config-swatch-glow 2s ease-in-out infinite;
+        }
+        .deadline-config-swatch[data-zone="critical"] { background: var(--deadline-overdue); }
+        .deadline-config-swatch[data-zone="warning"]  { background: #f39c12; }
+        .deadline-config-swatch[data-zone="soon"]     { background: #f1c40f; }
+        .deadline-config-swatch[data-zone="normal"]   { background: #27ae60; }
+
+        /* Pulsierender Glow analog zu .deadline-overdue, aber nur Box-Shadow,
+           damit die Swatch-Füllfarbe und der Inset-Rand erhalten bleiben. */
+        @keyframes deadline-config-swatch-glow {
+            0%, 100% {
+                box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1),
+                            0 0 0 0 rgba(235, 77, 75, 0.4);
+            }
+            50% {
+                box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.1),
+                            0 0 8px 2px rgba(235, 77, 75, 0.7);
             }
         }
         
@@ -1210,7 +1546,47 @@
             }
 
         }
+
+        /* Touch/iOS: font-size >= 16px verhindert Safari-Auto-Zoom – am Ende, damit nichts überschreibt */
+        html.ios-touch input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+        html.ios-touch textarea,
+        html.ios-touch select {
+            font-size: 16px !important;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        @media (hover: none) and (pointer: coarse) {
+            input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]):not([type="hidden"]),
+            textarea,
+            select {
+                font-size: 16px !important;
+                -webkit-text-size-adjust: 100%;
+            }
+        }
     </style>
+    <script>
+        (function () {
+            var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent)
+                || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            if (!isIOS) return;
+            var viewport = document.querySelector('meta[name="viewport"]');
+            if (viewport && !/maximum-scale/.test(viewport.content)) {
+                viewport.content += ', maximum-scale=1.0';
+            }
+            document.documentElement.classList.add('ios-touch');
+            document.addEventListener('focusin', function (e) {
+                var el = e.target;
+                if (!el || !el.tagName) return;
+                var tag = el.tagName.toLowerCase();
+                if (tag !== 'input' && tag !== 'textarea' && tag !== 'select') return;
+                var type = (el.type || '').toLowerCase();
+                if (type === 'checkbox' || type === 'radio' || type === 'range' || type === 'file' || type === 'hidden') return;
+                if (parseFloat(window.getComputedStyle(el).fontSize) < 16) {
+                    el.style.fontSize = '16px';
+                }
+            }, true);
+        })();
+    </script>
 </head>
 <body>
     <!-- Export Reminder Banner (Nicht-störend) -->
@@ -1248,13 +1624,15 @@
                         <a href="#" id="importDbBtn">DB importieren</a>
                         <a href="#" id="exportDbBtn">DB exportieren</a>
                         <a href="#" id="serverConfigBtn">Server-Einstellungen</a>
+                        <a href="#" id="deadlineConfigBtn">Deadline-Schwellen</a>
                         <a href="#" id="backupVersionsBtn">Versionsexplorer</a>
-                        <a href="#" id="uploadSyncBtn">Upload zum Server</a>
-                        <a href="#" id="downloadSyncBtn">Download vom Server</a>
                         <a href="#" id="contactBtn">Kontakt</a>
                         <a href="#" id="toggleThemeBtn">Dunkel <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg></a>
                         <div id="versionInfo" style="margin-top: 10px; padding: 8px; border-top: 1px solid #ccc; font-size: 12px; color: #666; text-align: center;">
                             <a id="versionLink" href="#" target="_blank" style="color: inherit; text-decoration: none;">Version: <span id="versionNumber"></span></a>
+                            <button type="button" id="reloadAppBtn" class="reload-btn" title="App neu vom Server laden" aria-label="App neu vom Server laden">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1280,13 +1658,23 @@
         
         <div class="tab-content" id="todosTab">
             <div class="card">
-                <h2>To-Dos für Events</h2>
+                <h2>Deadlines</h2>
                 <div class="todo-filter">
                     <div class="filter-buttons">
                         <button type="button" class="filter-btn" data-filter="erledigt" id="filter-erledigt">0 Erledigt</button>
                         <button type="button" class="filter-btn active" data-filter="anstehend" id="filter-anstehend">0 Anstehend</button>
                         <button type="button" class="filter-btn" data-filter="offen" id="filter-offen">0 Offen</button>
                         <button type="button" class="filter-btn active" data-filter="ueberfaellig" id="filter-ueberfaellig">0 Überfällig</button>
+                    </div>
+                    <div class="todo-filter-actions">
+                        <button type="button" id="addManualDeadlineBtn" class="btn btn-secondary">manuelle Deadline</button>
+                        <button type="button" id="deleteCompletedManualBtn" class="btn btn-outline" hidden title="Alle erledigten manuellen Deadlines löschen">Erledigte manuelle löschen (0)</button>
+                        <div class="live-filter">
+                            <input type="text" id="todoLiveFilter" placeholder="Deadlines filtern …" autocomplete="off" aria-label="Deadlines nach Titel filtern">
+                            <button type="button" id="todoLiveFilterClear" class="live-filter-clear" aria-label="Filter zurücksetzen" title="Filter zurücksetzen" hidden>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
                 <div id="todosContainer"></div>
@@ -1298,7 +1686,12 @@
                  <h2>Tasks</h2>
                  <div class="task-header" style="display: flex; align-items: center; gap: 10px;">
                      <button id="addTaskBtn" class="btn btn-secondary" style="align-self: flex-start;">Task hinzufügen</button>
-                     <input type="text" id="taskFilter" placeholder="Aufgaben filtern..." style="flex: 1; margin-bottom: 0;">
+                     <div class="live-filter" style="flex: 1 1 auto;">
+                         <input type="text" id="taskFilter" placeholder="Aufgaben filtern..." autocomplete="off" aria-label="Aufgaben filtern">
+                         <button type="button" id="taskFilterClear" class="live-filter-clear" aria-label="Filter zurücksetzen" title="Filter zurücksetzen" hidden>
+                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                         </button>
+                     </div>
                  </div>
                  <div id="tasksContainer" class="tasks-grid"></div>
              </div>
@@ -1483,6 +1876,15 @@
                             ⚠️ Änderungen des Schlüssels machen alte verschlüsselte Backups unzugänglich
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label for="exportReminderEnabled" style="display: flex; align-items: center; justify-content: space-between; width: 100%; gap: 12px; cursor: pointer;">
+                            <span style="white-space: nowrap;">Export-Erinnerung aktivieren</span>
+                            <input type="checkbox" id="exportReminderEnabled" checked style="margin: 0; flex-shrink: 0;">
+                        </label>
+                        <small style="color: #666; font-size: 12px;">
+                            Wenn deaktiviert, wird keine regelmäßige Erinnerung zum Datenbank-Export angezeigt.
+                        </small>
+                    </div>
                     <div style="text-align: center; margin-top: 20px;">
                         <button type="submit" class="btn btn-primary">Speichern</button>
                         <button type="button" class="btn btn-outline" onclick="closeServerConfigModal()">Abbrechen</button>
@@ -1492,10 +1894,98 @@
             </div>
         </div>
 
+        <div id="manualDeadlineModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="manualDeadlineModalTitle">Manuelle Deadline hinzufügen</h2>
+                    <span class="close" id="manualDeadlineModalClose">&times;</span>
+                </div>
+                <form id="manualDeadlineForm">
+                    <input type="hidden" id="manualDeadlineId">
+                    <div class="form-group">
+                        <label for="manualDeadlineTitle">Titel</label>
+                        <input type="text" id="manualDeadlineTitle" required autocomplete="off" placeholder="z. B. Sonderaufgabe planen">
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDeadlineDueDate">Fälligkeitsdatum</label>
+                        <input type="date" id="manualDeadlineDueDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDeadlineDescription">Beschreibung</label>
+                        <textarea id="manualDeadlineDescription" rows="3" placeholder="Optional"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="manualDeadlineSource">Quelle / Link</label>
+                        <input type="text" id="manualDeadlineSource" placeholder="Optional: URL oder Hinweis">
+                    </div>
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button type="button" class="btn btn-outline" onclick="closeManualDeadlineModal()">Abbrechen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="deadlineConfigModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div style="flex: 1;">
+                        <h2>Deadline-Schwellen</h2>
+                        <small style="color: var(--text-muted); font-size: 12px; display: block; margin-top: 5px;">
+                            Lege fest, ab wann Einträge auf der Seite Deadlines als bald, anstehend oder aktuell eingefärbt werden. Verschiebe die Marker auf dem Zeitstrahl.
+                        </small>
+                    </div>
+                </div>
+                <form id="deadlineConfigForm">
+                    <div class="deadline-config-track-wrapper">
+                        <div class="deadline-config-track" id="deadlineConfigTrack">
+                            <div class="deadline-config-segment" data-zone="critical"></div>
+                            <div class="deadline-config-segment" data-zone="warning"></div>
+                            <div class="deadline-config-segment" data-zone="soon"></div>
+                            <div class="deadline-config-segment" data-zone="normal"></div>
+                            <div class="deadline-config-thumb-label" data-handle="critical">7 T</div>
+                            <div class="deadline-config-thumb-label" data-handle="warning">14 T</div>
+                            <div class="deadline-config-thumb-label" data-handle="soon">31 T</div>
+                            <input type="range" min="1" max="60" step="1" value="7"
+                                   class="deadline-config-slider" data-handle="critical"
+                                   aria-label="Schwelle: kritisch (Tage)">
+                            <input type="range" min="1" max="60" step="1" value="14"
+                                   class="deadline-config-slider" data-handle="warning"
+                                   aria-label="Schwelle: Warnung (Tage)">
+                            <input type="range" min="1" max="60" step="1" value="31"
+                                   class="deadline-config-slider" data-handle="soon"
+                                   aria-label="Schwelle: bald (Tage)">
+                        </div>
+                        <div class="deadline-config-axis" aria-hidden="true">
+                            <span>0</span>
+                            <span>15</span>
+                            <span>30</span>
+                            <span>45</span>
+                            <span>60</span>
+                        </div>
+                    </div>
+
+                    <ul class="deadline-config-legend" id="deadlineConfigLegend">
+                        <li><span class="deadline-config-swatch" data-zone="overdue"></span><span class="deadline-config-legend-text" data-legend="overdue">Überfällig</span></li>
+                        <li><span class="deadline-config-swatch" data-zone="critical"></span><span class="deadline-config-legend-text" data-legend="critical">Aktuell: bis 7 Tage</span></li>
+                        <li><span class="deadline-config-swatch" data-zone="warning"></span><span class="deadline-config-legend-text" data-legend="warning">Anstehend: 8 – 14 Tage</span></li>
+                        <li><span class="deadline-config-swatch" data-zone="soon"></span><span class="deadline-config-legend-text" data-legend="soon">Bald: 15 – 31 Tage</span></li>
+                        <li><span class="deadline-config-swatch" data-zone="normal"></span><span class="deadline-config-legend-text" data-legend="normal">Offen: ab 32 Tagen</span></li>
+                    </ul>
+
+                    <div style="text-align: center; margin-top: 24px;">
+                        <button type="submit" class="btn btn-primary">Speichern</button>
+                        <button type="button" class="btn btn-outline" onclick="closeDeadlineConfigModal()">Abbrechen</button>
+                        <button type="button" class="btn btn-outline" id="deadlineConfigResetBtn" style="margin-left: 10px;" title="Standardwerte 7 / 14 / 31 wiederherstellen">Standard wiederherstellen</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <div id="backupVersionsModal" class="modal">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h2>Backup-Versionen wiederherstellen</h2>
+                    <h2>Backup-Versionen verwalten</h2>
                     <span class="close">&times;</span>
                 </div>
                 <div id="backupVersionsMessage" style="margin-bottom: 20px;">
@@ -1505,7 +1995,9 @@
                 <div id="versionsList" style="max-height: 400px; overflow-y: auto; margin-bottom: 20px;">
                     <!-- Versionen werden hier geladen -->
                 </div>
-                <div style="text-align: center;">
+                <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button id="uploadSyncBtn" class="btn btn-secondary">Upload zum Server</button>
+                    <button id="downloadSyncBtn" class="btn btn-secondary">Download vom Server</button>
                     <button id="closeVersionsBtn" class="btn btn-outline">Schließen</button>
                 </div>
             </div>
@@ -1517,7 +2009,7 @@
                       <h2 id="confirmModalTitle">Bestätigung</h2>
                       <span class="close" id="confirmModalClose">&times;</span>
                   </div>
-                  <div id="confirmModalMessage" style="margin-bottom: 20px;">Möchtest du das wirklich tun?</div>
+                  <div id="confirmModalMessage" style="margin-bottom: 20px; white-space: pre-line;">Möchtest du das wirklich tun?</div>
                   <div style="text-align: center;">
                       <button id="confirmBtn" class="btn btn-primary" style="margin-right: 10px;">Ja</button>
                       <button id="cancelBtn" class="btn btn-outline">Nein</button>
@@ -1569,11 +2061,14 @@
         const GITHUB_LINK = "https://github.com/geimist/Aufgaben-Manager";
 
         // Anpassbare Dringlichkeit-Schwellenwerte (in Tagen)
-        const DEADLINE_CONFIG = {
+        // Defaults werden beim ersten Setup verwendet und sind im Settings-Dialog
+        // über "Standard wiederherstellen" erreichbar.
+        const DEADLINE_CONFIG_DEFAULTS = Object.freeze({
             critical: 7,    // Kritischer Zeitraum (< 7 Tage)
             warning: 14,    // Warning-Bereich (8-14 Tage)
             soon: 31        // Soon-Bereich (15-31 Tage)
-        };
+        });
+        let DEADLINE_CONFIG = { ...DEADLINE_CONFIG_DEFAULTS };
 
         // Anpassbare Begriffe (unvollständig)
         const TEXT_CONFIG = {
@@ -1642,6 +2137,7 @@
         let eventTypes = [];
         let currentTab = 'todos'; // Standard-Tab
         let activeFilters = ['anstehend', 'ueberfaellig']; // Aktive Filter für Todo-Anzeige (nur dringende als Standard)
+        let todoTitleFilter = ''; // Live-Textfilter für die Deadlines-Ansicht (nur clientseitige Sichtbarkeit)
         let allTodos = []; // Globale allTodos für Zählungen
         let hideCompletedEvents = true; // Filter für Event-Liste (true = erledigte Events ausblenden)
 
@@ -1650,6 +2146,9 @@
         const DISABLE_DURATION_MS = 5 * 60 * 1000; // 5 Minuten
         
         let todoCounts = {}; // Globale Zählungen für Filter-Buttons
+        let manualCompletedCount = 0; // Anzahl erledigter manueller Deadlines
+        let autoUploadPausedAfterFailure = false;
+        let pendingAutoSyncTimeout = null;
 
         // SVG-Symbole für Passwort-Toggle
         const eyeVisibleSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
@@ -1767,26 +2266,73 @@
             document.getElementById('fileInput').addEventListener('change', importDatabase);
             document.getElementById('addEventBtn').addEventListener('click', () => openEventModal());
             document.getElementById('addTaskBtn').addEventListener('click', () => openTaskModal());
-            document.getElementById('taskFilter').addEventListener('input', function() {
+            const taskFilterInput = document.getElementById('taskFilter');
+            const taskFilterClear = document.getElementById('taskFilterClear');
+            taskFilterInput.addEventListener('input', function() {
+                if (taskFilterClear) {
+                    taskFilterClear.hidden = this.value.length === 0;
+                }
                 loadTasks(this.value);
             });
+            if (taskFilterClear) {
+                taskFilterClear.addEventListener('click', () => {
+                    taskFilterInput.value = '';
+                    taskFilterClear.hidden = true;
+                    taskFilterInput.focus();
+                    loadTasks('');
+                });
+                taskFilterInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && taskFilterInput.value !== '') {
+                        e.preventDefault();
+                        taskFilterClear.click();
+                    }
+                });
+            }
+
+            // Live-Filter für Deadlines-Ansicht (rein clientseitig, ohne DB-Änderung)
+            const liveFilterInput = document.getElementById('todoLiveFilter');
+            const liveFilterClear = document.getElementById('todoLiveFilterClear');
+            if (liveFilterInput && liveFilterClear) {
+                liveFilterInput.addEventListener('input', () => {
+                    todoTitleFilter = liveFilterInput.value.trim();
+                    liveFilterClear.hidden = todoTitleFilter.length === 0;
+                    applyTodoFilters();
+                });
+                liveFilterClear.addEventListener('click', () => {
+                    liveFilterInput.value = '';
+                    todoTitleFilter = '';
+                    liveFilterClear.hidden = true;
+                    liveFilterInput.focus();
+                    applyTodoFilters();
+                });
+                liveFilterInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape' && liveFilterInput.value !== '') {
+                        e.preventDefault();
+                        liveFilterClear.click();
+                    }
+                });
+            }
 
             // Server-Sync Event-Listener
             document.getElementById('serverConfigBtn').addEventListener('click', (e) => {
                 e.preventDefault();
                 openServerConfigModal();
             });
+            document.getElementById('deadlineConfigBtn').addEventListener('click', (e) => {
+                e.preventDefault();
+                openDeadlineConfigModal();
+            });
+            document.getElementById('addManualDeadlineBtn').addEventListener('click', () => {
+                openManualDeadlineModal();
+            });
+            document.getElementById('deleteCompletedManualBtn').addEventListener('click', () => {
+                deleteCompletedManualDeadlines();
+            });
+            document.getElementById('manualDeadlineForm').addEventListener('submit', saveManualDeadline);
+            document.getElementById('manualDeadlineModalClose').addEventListener('click', closeManualDeadlineModal);
             document.getElementById('backupVersionsBtn').addEventListener('click', (e) => {
                 e.preventDefault();
                 openBackupVersionsModal();
-            });
-            document.getElementById('uploadSyncBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                uploadDatabaseToServer();
-            });
-            document.getElementById('downloadSyncBtn').addEventListener('click', (e) => {
-                e.preventDefault();
-                downloadDatabaseFromServer();
             });
 
             // Export Reminder Banner Event-Handler
@@ -1939,6 +2485,7 @@
         function setupBurgerMenu() {
             const burgerMenu = document.querySelector('.burger-menu');
             const burgerContent = document.querySelector('.burger-content');
+            const burgerIcon = document.querySelector('.burger-icon');
             let hideTimeout;
 
             if (!burgerMenu || !burgerContent) return;
@@ -1967,6 +2514,20 @@
                 }, 300); // 300ms Verzögerung
             });
 
+            // Click-Toggle auf dem Burger-Icon: Touch-Geräte (iOS Safari) feuern
+            // bei "Hover-Preview"-Elementen den ersten Tap nur als mouseenter und
+            // den zweiten als click ohne sichtbaren Effekt, weil bisher nur Hover
+            // das Menü gesteuert hat. Ein expliziter Toggle macht das Menü auf
+            // Touch tippbar und stört den Desktop-Hover nicht.
+            if (burgerIcon) {
+                burgerIcon.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearTimeout(hideTimeout);
+                    const isOpen = burgerContent.style.display === 'block';
+                    burgerContent.style.display = isOpen ? 'none' : 'block';
+                });
+            }
+
             // Click-Outside-Handling: Schließe Menü bei Klick außerhalb
             document.addEventListener('click', (e) => {
                 if (!burgerMenu.contains(e.target)) {
@@ -1980,6 +2541,7 @@
         function setupSettingsMenu() {
             const settingsMenu = document.querySelector('.settings-menu');
             const settingsContent = document.querySelector('.settings-content');
+            const settingsTrigger = settingsMenu ? settingsMenu.querySelector('.icon-btn') : null;
             let hideTimeout;
 
             if (!settingsMenu || !settingsContent) return;
@@ -2014,6 +2576,20 @@
                 }, 300); // 300ms Verzögerung
             });
 
+            // Click-Toggle auf dem Settings-Icon: Touch-Geräte (iOS Safari) feuern
+            // bei "Hover-Preview"-Elementen den ersten Tap nur als mouseenter und
+            // den zweiten als click ohne sichtbaren Effekt, weil bisher nur Hover
+            // das Menü gesteuert hat. Ein expliziter Toggle macht das Menü auf
+            // Touch tippbar und stört den Desktop-Hover nicht.
+            if (settingsTrigger) {
+                settingsTrigger.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    clearTimeout(hideTimeout);
+                    const isOpen = settingsContent.style.display === 'block';
+                    settingsContent.style.display = isOpen ? 'none' : 'block';
+                });
+            }
+
             // Click-Outside-Handling: Schließe Menü bei Klick außerhalb
             document.addEventListener('click', (e) => {
                 if (!settingsMenu.contains(e.target)) {
@@ -2034,6 +2610,36 @@
             const versionLink = document.getElementById('versionLink');
             if (versionLink) {
                 versionLink.href = GITHUB_LINK;
+            }
+
+            // Reload-Button: erzwingt Hard-Reload mit Cache-Buster (z. B. iOS Webclip umgeht so den Safari-Cache)
+            const reloadBtn = document.getElementById('reloadAppBtn');
+            if (reloadBtn && !reloadBtn.dataset.bound) {
+                reloadBtn.dataset.bound = '1';
+                reloadBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (!confirm('App neu vom Server laden?\nDeine Aufgaben und Einstellungen bleiben erhalten.')) return;
+
+                    reloadBtn.classList.add('spinning');
+                    reloadBtn.disabled = true;
+
+                    // Vorsorglich: falls jemals Service Worker / Caches dazukommen
+                    try {
+                        if ('caches' in window) {
+                            const keys = await caches.keys();
+                            await Promise.all(keys.map(k => caches.delete(k)));
+                        }
+                    } catch (_) { /* ignorieren */ }
+
+                    try {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('_v', Date.now().toString());
+                        window.location.replace(url.toString());
+                    } catch (_) {
+                        window.location.reload();
+                    }
+                });
             }
 
             // Burger-Menü Texte aktualisieren - VERBESSERT: Verwende textContent statt innerHTML um data-attributs nicht zu zerstören
@@ -2156,7 +2762,10 @@
                 
                 // Event-Types für Vorschläge laden
                 loadEventTypes();
-                
+
+                // Deadline-Schwellen laden, bevor Listen gerendert werden
+                loadDeadlineConfig();
+
                 // Daten für aktuellen Tab laden
                 if (currentTab === 'events') {
                     loadEvents();
@@ -2183,6 +2792,24 @@
             }
 
             try {
+                // Benutzerpräferenz prüfen (Default: true)
+                const reminderSettingResult = db.exec(`
+                    SELECT value
+                    FROM metadata
+                    WHERE key = 'export_reminder_enabled'
+                `);
+                const exportReminderEnabled = reminderSettingResult.length === 0 ||
+                    reminderSettingResult[0].values.length === 0 ||
+                    reminderSettingResult[0].values[0][0] !== 'false';
+
+                const reminderElement = document.getElementById('exportReminder');
+                if (!exportReminderEnabled) {
+                    if (reminderElement) {
+                        reminderElement.style.display = 'none';
+                    }
+                    return;
+                }
+
                 // Letztes Export-Datum aus Metadata laden
                 const result = db.exec(`
                     SELECT value, updated_at
@@ -2215,7 +2842,6 @@
                 }
 
                 // Banner anzeigen oder ausblenden
-                const reminderElement = document.getElementById('exportReminder');
                 const textElement = document.getElementById('exportReminderText');
 
                 if (shouldShowReminder && reminderElement && textElement) {
@@ -2287,6 +2913,7 @@
                 // Lokale Änderungen nur bei echten Datenänderungen tracken (nicht bei Reloads)
                 if (updateLocalChange) {
                     const now = new Date().toISOString();
+                    autoUploadPausedAfterFailure = false;
 
                     // FIX: Auch im localStorage den Modifikationszeitpunkt speichern
                     localStorage.setItem('todoManagerDB_modified', now);
@@ -2313,6 +2940,7 @@
             try {
                 const arrayBuffer = await file.arrayBuffer();
                 db = new SQL.Database(new Uint8Array(arrayBuffer));
+                createTablesIfNeeded();
                 
                 // Datenbank speichern
                 saveDatabase();
@@ -2321,9 +2949,10 @@
                 loadEventTypes();
 
                 // Event-Filter-Präferenz laden
-                console.log('Initialisierung: Starte loadEventFilterPreference');
                 loadEventFilterPreference();
-                console.log('Initialisierung: loadEventFilterPreference abgeschlossen');
+
+                // Deadline-Schwellen aus importierter DB übernehmen
+                loadDeadlineConfig();
 
                 // Daten für aktuellen Tab laden
                 if (currentTab === 'events') {
@@ -2536,6 +3165,24 @@
                 )
             `);
 
+            // Tabelle für manuelle Deadlines (unabhängig von Events/Tasks)
+            db.run(`
+                CREATE TABLE IF NOT EXISTS manual_deadlines (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    uuid TEXT UNIQUE NOT NULL,
+                    title TEXT NOT NULL,
+                    due_date DATE NOT NULL,
+                    description TEXT,
+                    source TEXT,
+                    completed BOOLEAN DEFAULT 0,
+                    completed_at DATETIME,
+                    user_note TEXT,
+                    exported_at DATETIME,
+                    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                )
+            `);
+
             // Metadata-Tabelle für Export-Erinnerungen und Server-Konfiguration
             db.run(`
                 CREATE TABLE IF NOT EXISTS metadata (
@@ -2553,6 +3200,18 @@
             db.run(`
                 CREATE INDEX IF NOT EXISTS idx_calendar_todos_uuid
                 ON calendar_todos(uuid)
+            `);
+            db.run(`
+                CREATE INDEX IF NOT EXISTS idx_manual_deadlines_due
+                ON manual_deadlines(due_date)
+            `);
+            db.run(`
+                CREATE INDEX IF NOT EXISTS idx_manual_deadlines_completed
+                ON manual_deadlines(completed)
+            `);
+            db.run(`
+                CREATE INDEX IF NOT EXISTS idx_manual_deadlines_uuid
+                ON manual_deadlines(uuid)
             `);
 
             // Datenbank speichern
@@ -2579,6 +3238,7 @@
                             completed_at DATETIME,
                             occurrence_date DATE,        -- Optional: Für wiederkehrende Instanzen
                             recurrence_id INTEGER,       -- Optional: Referenz auf Recurrence
+                            user_note TEXT,              -- Individuelle Notiz des Users
                             PRIMARY KEY (task_id, event_id, occurrence_date),
                             FOREIGN KEY (task_id) REFERENCES tasks(id),
                             FOREIGN KEY (event_id) REFERENCES events(id)
@@ -2594,6 +3254,7 @@
 
                 let hasOccurrenceDate = false;
                 let hasRecurrenceId = false;
+                let hasUserNote = false;
 
                 if (columnExists.length > 0) {
                     const columns = columnExists[0].values;
@@ -2601,9 +3262,18 @@
                         const columnName = column[1]; // Name ist bei Index 1
                         if (columnName === 'occurrence_date') hasOccurrenceDate = true;
                         if (columnName === 'recurrence_id') hasRecurrenceId = true;
+                        if (columnName === 'user_note') hasUserNote = true;
                     }
                 }
 
+                // Migration: user_note Spalte hinzufügen falls sie fehlt
+                if (hasOccurrenceDate && hasRecurrenceId && !hasUserNote) {
+                    try {
+                        db.run('ALTER TABLE completed_tasks ADD COLUMN user_note TEXT');
+                    } catch (e) {
+                        console.error('❌ Fehler beim Hinzufügen der Spalte user_note:', e.message);
+                    }
+                }
 
                 if (!hasOccurrenceDate || !hasRecurrenceId) {
                     // Backup der bestehenden Daten
@@ -2621,6 +3291,7 @@
                             completed_at DATETIME,
                             occurrence_date DATE,        -- Optional: Für wiederkehrende Instanzen
                             recurrence_id INTEGER,       -- Optional: Referenz auf Recurrence
+                            user_note TEXT,              -- Individuelle Notiz des Users
                             PRIMARY KEY (task_id, event_id, occurrence_date),
                             FOREIGN KEY (task_id) REFERENCES tasks(id),
                             FOREIGN KEY (event_id) REFERENCES events(id)
@@ -2633,8 +3304,8 @@
                             const [taskId, eventId, completed, completedAt] = row;
                             db.run(`
                                 INSERT INTO completed_tasks
-                                (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id)
-                                VALUES (?, ?, ?, ?, NULL, NULL)
+                                (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note)
+                                VALUES (?, ?, ?, ?, NULL, NULL, NULL)
                             `, [taskId, eventId, completed, completedAt]);
                         }
                     }
@@ -2787,6 +3458,74 @@
                 }
             } catch (error) {
                 console.warn('Konnte Event-Filter-Präferenz nicht laden:', error.message);
+            }
+        }
+
+        // Deadline-Schwellenwerte aus metadata laden (JSON unter Key 'deadline_config').
+        // Bei fehlendem oder ungültigem Eintrag bleiben die Defaults bestehen.
+        function loadDeadlineConfig() {
+            if (!db) return;
+
+            try {
+                const result = db.exec(`
+                    SELECT value FROM metadata WHERE key = 'deadline_config'
+                `);
+                if (result.length === 0 || result[0].values.length === 0) {
+                    DEADLINE_CONFIG = { ...DEADLINE_CONFIG_DEFAULTS };
+                    return;
+                }
+
+                const raw = result[0].values[0][0];
+                const parsed = JSON.parse(raw);
+
+                const sanitized = sanitizeDeadlineConfig(parsed);
+                if (sanitized) {
+                    DEADLINE_CONFIG = sanitized;
+                } else {
+                    DEADLINE_CONFIG = { ...DEADLINE_CONFIG_DEFAULTS };
+                }
+            } catch (error) {
+                console.warn('Konnte Deadline-Schwellen nicht laden, verwende Defaults:', error.message);
+                DEADLINE_CONFIG = { ...DEADLINE_CONFIG_DEFAULTS };
+            }
+        }
+
+        // Werte validieren: ganze Zahlen 1..365 und critical < warning < soon.
+        // Gibt bereinigte Konfiguration zurück oder null bei ungültigen Daten.
+        function sanitizeDeadlineConfig(cfg) {
+            if (!cfg || typeof cfg !== 'object') return null;
+
+            const critical = Math.round(Number(cfg.critical));
+            const warning = Math.round(Number(cfg.warning));
+            const soon = Math.round(Number(cfg.soon));
+
+            const allValid = [critical, warning, soon].every(v =>
+                Number.isFinite(v) && v >= 1 && v <= 365
+            );
+            if (!allValid) return null;
+            if (!(critical < warning && warning < soon)) return null;
+
+            return { critical, warning, soon };
+        }
+
+        // Deadline-Schwellen in metadata speichern und Sync triggern.
+        function saveDeadlineConfig(cfg) {
+            if (!db) return false;
+
+            const sanitized = sanitizeDeadlineConfig(cfg);
+            if (!sanitized) return false;
+
+            try {
+                db.run(`
+                    INSERT OR REPLACE INTO metadata (key, value, updated_at)
+                    VALUES ('deadline_config', ?, datetime('now'))
+                `, [JSON.stringify(sanitized)]);
+                DEADLINE_CONFIG = sanitized;
+                saveDatabase(true);
+                return true;
+            } catch (error) {
+                console.error('Fehler beim Speichern der Deadline-Schwellen:', error);
+                return false;
             }
         }
 
@@ -3012,6 +3751,9 @@
                 // Prüfe, ob Instanz bereits exportiert wurde
                 const exported = isTodoExported(task.taskId, task.eventId, deadline);
 
+                // Lade die Notiz für diese Instanz
+                const userNote = getTodoNote(task.taskId, task.eventId, deadline);
+
                 todos.push({
                     type: 'task',
                     eventId: task.eventId,
@@ -3028,6 +3770,7 @@
                     source: task.source,
                     completed: completed,
                     exported: exported,
+                    userNote: userNote,
                     isRecurring: true,
                     occurrenceDate: deadline, // FIX: occurrence_date ist die deadline
                     recurrenceId: recurrence.id
@@ -3091,6 +3834,31 @@
             }
         }
 
+        // Hilfsfunktion: Lädt die Notiz für eine Todo-Instanz
+        function getTodoNote(taskId, eventId, occurrenceDate) {
+            try {
+                let query, params;
+                
+                if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                    // Wiederkehrende Instanz - prüfe mit occurrence_date
+                    query = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                    params = [taskId, eventId, occurrenceDate];
+                } else {
+                    // Normaler Task - prüfe ohne occurrence_date
+                    query = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                    params = [taskId, eventId];
+                }
+                
+                const result = db.exec(query, params);
+                const userNote = (result.length > 0 && result[0].values.length > 0) ? result[0].values[0][0] : null;
+                return userNote || '';
+            } catch (error) {
+                console.error('❌ Fehler beim Laden der Notiz:', error);
+                console.error('Params:', { taskId, eventId, occurrenceDate });
+                return '';
+            }
+        }
+
         // Hilfsfunktion: Fügt Interval zu Datum hinzu
         function addInterval(date, value, unit) {
             const newDate = new Date(date);
@@ -3150,12 +3918,7 @@
                 const result = db.exec(query);
                 const container = document.getElementById('todosContainer');
 
-                if (result.length === 0) {
-                    container.innerHTML = '<p>Keine To-Dos gefunden</p>';
-                    return;
-                }
-
-                const todos = result[0].values;
+                const todos = (result.length > 0) ? result[0].values : [];
 
                 // Sammle alle Todos (Tasks und Events ohne Tasks)
                 let allTodos = [];
@@ -3211,6 +3974,8 @@
                                 WHERE event_id = ? AND task_id = ? AND start_date = ?
                             `, [eventId, taskId, deadline])[0]?.values.length > 0;
 
+                            // Notiz für normale Tasks laden
+                            const normalTaskNote = getTodoNote(taskId, eventId, null);
 
                             allTodos.push({
                                 type: 'task',
@@ -3227,7 +3992,8 @@
                                 unit: unit,
                                 source: source,
                                 completed: normalTaskCompleted, // Verwende korrekt ermittelten Status
-                                exported: normalTaskExported
+                                exported: normalTaskExported,
+                                userNote: normalTaskNote
                             });
                         }
                     }
@@ -3265,6 +4031,39 @@
                         processedEvents.add(eventId);
                     }
                 });
+
+                // Manuelle Deadlines laden
+                manualCompletedCount = 0;
+                try {
+                    const manualResult = db.exec(`
+                        SELECT id, uuid, title, due_date, description, source, completed, user_note, exported_at
+                        FROM manual_deadlines
+                    `);
+                    if (manualResult.length > 0 && manualResult[0].values.length > 0) {
+                        manualResult[0].values.forEach(row => {
+                            const [id, uuid, title, dueDate, description, source, completed, userNote, exportedAt] = row;
+                            const isCompleted = completed === 1;
+                            if (isCompleted) {
+                                manualCompletedCount++;
+                            }
+                            allTodos.push({
+                                type: 'manual',
+                                manualId: id,
+                                uuid: uuid,
+                                title: title,
+                                deadline: dueDate,
+                                description: description,
+                                source: source,
+                                completed: isCompleted,
+                                userNote: userNote,
+                                exported: exportedAt != null && exportedAt !== ''
+                            });
+                        });
+                    }
+                } catch (manualError) {
+                    console.warn('Manuelle Deadlines konnten nicht geladen werden:', manualError.message);
+                }
+                window.manualCompletedCount = manualCompletedCount;
 
                 // Alle Todos sortieren (älteste zuerst)
                 allTodos.sort((a, b) => {
@@ -3340,6 +4139,17 @@
                                             }
                                         </div>
                                     ` : ''}
+                                    <div class="todo-note" style="margin-top: 10px;">
+                                        <textarea
+                                            class="todo-note-input"
+                                            rows="1"
+                                            placeholder="Notiz hinzufügen ..."
+                                            data-task-id="${todo.taskId}"
+                                            data-event-id="${todo.eventId}"
+                                            ${todo.occurrenceDate ? `data-occurrence-date="${todo.occurrenceDate}"` : ''}
+                                            onblur="saveTaskNote(this)"
+                                        >${todo.userNote || ''}</textarea>
+                                    </div>
                                 </div>
                                 <div class="todo-actions">
                                       <input type="checkbox" class="todo-checkbox"
@@ -3351,6 +4161,49 @@
                                           title="${todo.occurrenceDate ? `Instanz vom ${todo.occurrenceDate} als erledigt markieren` : 'Als erledigt markieren'}"
                                           aria-label="${todo.occurrenceDate ? `Instanz vom ${todo.occurrenceDate} als erledigt markieren` : 'Aufgabe als erledigt markieren'}">
                                   </div>
+                            </li>
+                        `;
+                    } else if (todo.type === 'manual') {
+                        const isCompleted = todo.completed;
+                        const safeTitle = escapeHtml(todo.title);
+                        const safeDescription = todo.description ? escapeHtml(todo.description) : '';
+                        const safeNote = todo.userNote ? escapeHtml(todo.userNote) : '';
+
+                        html += `
+                            <li class="todo-item manual-deadline ${isCompleted ? 'completed' : ''}" data-manual-id="${todo.manualId}">
+                                <div class="todo-content">
+                                    <div class="todo-main">
+                                        <span class="todo-type">${safeTitle} <small style="color: #666; font-weight: normal;">(Manuelle Deadline)</small></span><br>
+                                        ${safeDescription ? `<div class="todo-description">${safeDescription}</div>` : ''}
+                                        <div class="todo-date ${getDeadlineUrgencyClass(todo.deadline, isCompleted)}" onclick="downloadManualDeadlineICS(${todo.manualId})" style="cursor: pointer;" title="${todo.exported ? 'Kalender wurde bereits exportiert' : 'Als Kalendereintrag exportieren'}" aria-label="Manuelle Deadline als ICS-Datei exportieren">${getCalendarSVGIcon(todo.deadline, isCompleted, todo.exported)}Fällig: ${todo.deadline}</div>
+                                    </div>
+                                    ${todo.source ? `
+                                        <div class="todo-source">
+                                            ${isUrl(todo.source) ?
+                                                `<a href="${String(todo.source).replace(/"/g, '&quot;')}" target="_blank" class="source-link">${linkSVG}${extractDomain(todo.source)}</a>` :
+                                                `<span>${escapeHtml(todo.source)}</span>`
+                                            }
+                                        </div>
+                                    ` : ''}
+                                    <div class="todo-note" style="margin-top: 10px;">
+                                        <textarea
+                                            class="todo-note-input"
+                                            rows="1"
+                                            placeholder="Notiz hinzufügen ..."
+                                            data-manual-id="${todo.manualId}"
+                                            onblur="saveManualDeadlineNote(this)"
+                                        >${safeNote}</textarea>
+                                    </div>
+                                </div>
+                                <div class="todo-actions manual-deadline-actions">
+                                    <button type="button" class="manual-deadline-edit" onclick="openManualDeadlineModal(${todo.manualId})" title="Bearbeiten" aria-label="Manuelle Deadline bearbeiten">${editSVG}</button>
+                                    <input type="checkbox" class="todo-checkbox"
+                                        data-manual-id="${todo.manualId}"
+                                        ${isCompleted ? 'checked' : ''}
+                                        onchange="toggleManualDeadlineCompletion(this)"
+                                        title="Als erledigt markieren"
+                                        aria-label="Manuelle Deadline als erledigt markieren">
+                                </div>
                             </li>
                         `;
                     } else if (todo.type === 'event') {
@@ -3367,10 +4220,11 @@
                 });
 
                 if (allTodos.length === 0) {
-                    html = '<p>Keine To-Dos oder Events gefunden</p>';
+                    html = '<p>Keine Deadlines gefunden</p>';
                 }
 
                 container.innerHTML = html;
+                initTodoNoteInputs(container);
 
                 // Filter-Status nach dem Laden der Todos anwenden
                 updateFilterButtonStates();
@@ -3378,6 +4232,7 @@
 
                 // Anzahl der Aufgaben aktualisieren
                 updateTodoCounts();
+                updateManualDeadlineCleanupButton();
 
             } catch (error) {
                 console.error('Fehler beim Laden der To-Dos:', error);
@@ -3393,6 +4248,15 @@
             } catch (_) {
                 return false;
             }
+        }
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
         }
 
         // Domain aus URL extrahieren
@@ -3798,12 +4662,15 @@
 
             const daysDifference = Math.floor((deadlineDate - today) / (1000 * 60 * 60 * 24));
 
+            // Farbe aus CSS-Variable lesen, Fallback auf #8b0000
+            const overdueColor = getComputedStyle(document.documentElement).getPropertyValue('--deadline-overdue').trim() || '#8b0000';
+
             if (daysDifference < 0) {
                 // Überfällig
-                return '#8b0000'; // dunkelrot
+                return overdueColor;
             } else if (daysDifference <= DEADLINE_CONFIG.critical) {
                 // Kritischer Zeitraum
-                return '#8b0000'; // dunkelrot
+                return overdueColor;
             } else if (daysDifference <= DEADLINE_CONFIG.warning) {
                 // Warning-Bereich
                 return '#f39c12'; // orange
@@ -3830,6 +4697,14 @@
             } else {
                 // Farbe basierend auf Deadline-Status
                 color = getDeadlineColor(deadline, isCompleted);
+            }
+
+            // Für überfällige/kritische Deadlines die CSS-Variable verwenden
+            if (color === '#8b0000') {
+                const overdueColor = getComputedStyle(document.documentElement).getPropertyValue('--deadline-overdue').trim();
+                if (overdueColor) {
+                    color = overdueColor;
+                }
             }
 
             // SVG basierend auf deiner Vorlage
@@ -3887,37 +4762,73 @@
             const completed = checkbox.checked ? 1 : 0;
             const occurrenceDate = checkbox.dataset.occurrenceDate; // Neu für wiederkehrende Tasks
 
-
-
             try {
                 // VERBESSERTE ROBUST HANDLING für occurrence_date
                 if (completed) {
                     if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
-                        // WIEDERKEHRENDE INSTANZ: Speichere mit occurrence_date
-
-                        const query = 'INSERT OR REPLACE INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id) VALUES (?, ?, ?, datetime("now"), ?, NULL)';
-                        db.run(query, [taskId, eventId, completed, occurrenceDate]);
-
+                        // WIEDERKEHRENDE INSTANZ: Prüfe ob Eintrag existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                        const existing = db.exec(checkQuery, [taskId, eventId, occurrenceDate]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            // UPDATE mit Beibehaltung der user_note
+                            const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = datetime("now") WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                            db.run(updateQuery, [completed, taskId, eventId, occurrenceDate]);
+                        } else {
+                            // INSERT mit default user_note NULL
+                            const insertQuery = 'INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note) VALUES (?, ?, ?, datetime("now"), ?, NULL, NULL)';
+                            db.run(insertQuery, [taskId, eventId, completed, occurrenceDate]);
+                        }
                     } else {
-                        // NORMALER TASK: Speichere ohne occurrence_date (NULL)
-
-                        const query = 'INSERT OR REPLACE INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id) VALUES (?, ?, ?, datetime("now"), NULL, NULL)';
-                        db.run(query, [taskId, eventId, completed]);
-
+                        // NORMALER TASK: Prüfe ob Eintrag existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                        const existing = db.exec(checkQuery, [taskId, eventId]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            // UPDATE mit Beibehaltung der user_note
+                            const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = datetime("now") WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                            db.run(updateQuery, [completed, taskId, eventId]);
+                        } else {
+                            // INSERT mit default user_note NULL
+                            const insertQuery = 'INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note) VALUES (?, ?, ?, datetime("now"), NULL, NULL, NULL)';
+                            db.run(insertQuery, [taskId, eventId, completed]);
+                        }
                     }
                 } else {
                     if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
-                        // WIEDERKEHRENDE INSTANZ: Lösche mit occurrence_date
-
-                        const query = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
-                        db.run(query, [taskId, eventId, occurrenceDate]);
-
+                        // WIEDERKEHRENDE INSTANZ: Prüfe ob Eintrag mit Notiz existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                        const existing = db.exec(checkQuery, [taskId, eventId, occurrenceDate]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            const userNote = existing[0].values[0][0];
+                            if (userNote !== null) {
+                                // Notiz vorhanden – UPDATE auf completed = 0, completed_at = NULL
+                                const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = NULL WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                                db.run(updateQuery, [completed, taskId, eventId, occurrenceDate]);
+                            } else {
+                                // Keine Notiz – DELETE
+                                const deleteQuery = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                                db.run(deleteQuery, [taskId, eventId, occurrenceDate]);
+                            }
+                        } else {
+                            // Kein Eintrag – nichts zu tun
+                        }
                     } else {
-                        // NORMALER TASK: Lösche ohne occurrence_date
-
-                        const query = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
-                        db.run(query, [taskId, eventId]);
-
+                        // NORMALER TASK: Prüfe ob Eintrag mit Notiz existiert
+                        const checkQuery = 'SELECT user_note FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                        const existing = db.exec(checkQuery, [taskId, eventId]);
+                        if (existing.length > 0 && existing[0].values.length > 0) {
+                            const userNote = existing[0].values[0][0];
+                            if (userNote !== null) {
+                                // Notiz vorhanden – UPDATE auf completed = 0, completed_at = NULL
+                                const updateQuery = 'UPDATE completed_tasks SET completed = ?, completed_at = NULL WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                                db.run(updateQuery, [completed, taskId, eventId]);
+                            } else {
+                                // Keine Notiz – DELETE
+                                const deleteQuery = 'DELETE FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                                db.run(deleteQuery, [taskId, eventId]);
+                            }
+                        } else {
+                            // Kein Eintrag – nichts zu tun
+                        }
                     }
                 }
 
@@ -3958,6 +4869,341 @@
             }
         }
         
+        function autoResizeTodoNote(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function initTodoNoteInputs(container) {
+            const inputs = container.querySelectorAll('.todo-note-input');
+            if (CSS.supports('field-sizing', 'content')) return;
+
+            inputs.forEach(textarea => {
+                autoResizeTodoNote(textarea);
+                textarea.addEventListener('input', () => autoResizeTodoNote(textarea));
+            });
+            requestAnimationFrame(() => {
+                inputs.forEach(autoResizeTodoNote);
+            });
+        }
+
+        // Notiz für einen Deadline-Eintrag speichern
+        function saveTaskNote(textarea) {
+            if (!db) return;
+
+            const taskId = textarea.dataset.taskId;
+            const eventId = textarea.dataset.eventId;
+            const occurrenceDate = textarea.dataset.occurrenceDate;
+            const noteText = textarea.value.trim();
+
+            try {
+                // Prüfe ob bereits ein Eintrag in completed_tasks existiert
+                let query, params;
+                
+                if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                    // Wiederkehrende Instanz
+                    query = 'SELECT * FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date = ?';
+                    params = [taskId, eventId, occurrenceDate];
+                } else {
+                    // Normaler Task
+                    query = 'SELECT * FROM completed_tasks WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL';
+                    params = [taskId, eventId];
+                }
+
+                const existingEntry = db.exec(query, params);
+
+                if (existingEntry.length > 0 && existingEntry[0].values.length > 0) {
+                    // Eintrag existiert bereits - UPDATE
+                    if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                        db.run(`UPDATE completed_tasks SET user_note = ? WHERE task_id = ? AND event_id = ? AND occurrence_date = ?`,
+                            [noteText || null, taskId, eventId, occurrenceDate]);
+                    } else {
+                        db.run(`UPDATE completed_tasks SET user_note = ? WHERE task_id = ? AND event_id = ? AND occurrence_date IS NULL`,
+                            [noteText || null, taskId, eventId]);
+                    }
+                } else {
+                    // Noch kein Eintrag - INSERT mit completed = 0
+                    if (occurrenceDate && occurrenceDate !== 'undefined' && occurrenceDate !== 'null') {
+                        db.run(`INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note)
+                                VALUES (?, ?, 0, NULL, ?, NULL, ?)`,
+                            [taskId, eventId, occurrenceDate, noteText || null]);
+                    } else {
+                        db.run(`INSERT INTO completed_tasks (task_id, event_id, completed, completed_at, occurrence_date, recurrence_id, user_note)
+                                VALUES (?, ?, 0, NULL, NULL, NULL, ?)`,
+                            [taskId, eventId, noteText || null]);
+                    }
+                }
+
+                saveDatabase(true); // Echte Datenänderung - Notiz gespeichert
+                
+                // Visuelles Feedback
+                textarea.style.borderColor = 'var(--secondary)';
+                setTimeout(() => {
+                    textarea.style.borderColor = '';
+                }, 500);
+
+                // Sync-Status aktualisieren
+                updateSyncIndicator();
+
+            } catch (error) {
+                console.error('❌ Fehler beim Speichern der Notiz:', error);
+                showStatus('Fehler beim Speichern der Notiz: ' + error.message, 'error');
+            }
+        }
+
+        // ============================
+        // MANUELLE DEADLINES
+        // ============================
+
+        function openManualDeadlineModal(manualId = null) {
+            if (!db) return;
+
+            const modal = document.getElementById('manualDeadlineModal');
+            const titleEl = document.getElementById('manualDeadlineModalTitle');
+            const form = document.getElementById('manualDeadlineForm');
+            const idField = document.getElementById('manualDeadlineId');
+
+            form.reset();
+            idField.value = manualId || '';
+
+            if (manualId) {
+                titleEl.textContent = 'Manuelle Deadline bearbeiten';
+                const result = db.exec(`
+                    SELECT title, due_date, description, source
+                    FROM manual_deadlines
+                    WHERE id = ?
+                `, [manualId]);
+
+                if (result.length === 0 || result[0].values.length === 0) {
+                    showStatus('Manuelle Deadline nicht gefunden', 'error');
+                    return;
+                }
+
+                const [title, dueDate, description, source] = result[0].values[0];
+                document.getElementById('manualDeadlineTitle').value = title || '';
+                document.getElementById('manualDeadlineDueDate').value = dueDate || '';
+                document.getElementById('manualDeadlineDescription').value = description || '';
+                document.getElementById('manualDeadlineSource').value = source || '';
+            } else {
+                titleEl.textContent = 'Manuelle Deadline hinzufügen';
+            }
+
+            modal.style.display = 'flex';
+            document.getElementById('manualDeadlineTitle').focus();
+        }
+
+        function closeManualDeadlineModal() {
+            document.getElementById('manualDeadlineModal').style.display = 'none';
+        }
+
+        function saveManualDeadline(event) {
+            event.preventDefault();
+            if (!db) return;
+
+            const manualId = document.getElementById('manualDeadlineId').value;
+            const title = document.getElementById('manualDeadlineTitle').value.trim();
+            const dueDate = document.getElementById('manualDeadlineDueDate').value;
+            const description = document.getElementById('manualDeadlineDescription').value.trim();
+            const source = document.getElementById('manualDeadlineSource').value.trim();
+
+            if (!title || !dueDate) {
+                showStatus('Titel und Fälligkeitsdatum sind erforderlich', 'error');
+                return;
+            }
+
+            try {
+                if (manualId) {
+                    db.run(`
+                        UPDATE manual_deadlines
+                        SET title = ?, due_date = ?, description = ?, source = ?, updated_at = datetime('now')
+                        WHERE id = ?
+                    `, [title, dueDate, description || null, source || null, manualId]);
+                    showStatus('Manuelle Deadline aktualisiert', 'success');
+                } else {
+                    const uuid = generateUUID();
+                    db.run(`
+                        INSERT INTO manual_deadlines
+                        (uuid, title, due_date, description, source, completed, created_at, updated_at)
+                        VALUES (?, ?, ?, ?, ?, 0, datetime('now'), datetime('now'))
+                    `, [uuid, title, dueDate, description || null, source || null]);
+                    showStatus('Manuelle Deadline erstellt', 'success');
+                }
+
+                saveDatabase(true);
+                closeManualDeadlineModal();
+                loadTodos();
+                updateSyncIndicator();
+            } catch (error) {
+                console.error('Fehler beim Speichern der manuellen Deadline:', error);
+                showStatus('Fehler beim Speichern: ' + error.message, 'error');
+            }
+        }
+
+        function toggleManualDeadlineCompletion(checkbox) {
+            if (!db) return;
+
+            const manualId = checkbox.dataset.manualId;
+            const completed = checkbox.checked ? 1 : 0;
+
+            try {
+                if (completed) {
+                    db.run(`
+                        UPDATE manual_deadlines
+                        SET completed = 1, completed_at = datetime('now'), updated_at = datetime('now')
+                        WHERE id = ?
+                    `, [manualId]);
+                } else {
+                    db.run(`
+                        UPDATE manual_deadlines
+                        SET completed = 0, completed_at = NULL, updated_at = datetime('now')
+                        WHERE id = ?
+                    `, [manualId]);
+                }
+
+                saveDatabase(true);
+                loadTodos();
+                updateTodoCounts();
+                updateSyncIndicator();
+                showStatus('Status der manuellen Deadline aktualisiert', 'success');
+            } catch (error) {
+                console.error('Fehler beim Aktualisieren der manuellen Deadline:', error);
+                showStatus('Fehler: ' + error.message, 'error');
+                checkbox.checked = !checkbox.checked;
+            }
+        }
+
+        function saveManualDeadlineNote(textarea) {
+            if (!db) return;
+
+            const manualId = textarea.dataset.manualId;
+            const noteText = textarea.value.trim();
+
+            try {
+                db.run(`
+                    UPDATE manual_deadlines
+                    SET user_note = ?, updated_at = datetime('now')
+                    WHERE id = ?
+                `, [noteText || null, manualId]);
+
+                saveDatabase(true);
+                textarea.style.borderColor = 'var(--secondary)';
+                setTimeout(() => {
+                    textarea.style.borderColor = '';
+                }, 500);
+                updateSyncIndicator();
+            } catch (error) {
+                console.error('Fehler beim Speichern der Notiz:', error);
+                showStatus('Fehler beim Speichern der Notiz: ' + error.message, 'error');
+            }
+        }
+
+        async function deleteCompletedManualDeadlines() {
+            if (!db) return;
+
+            const count = manualCompletedCount || window.manualCompletedCount || 0;
+            if (count === 0) return;
+
+            const confirmed = await customConfirm(
+                `Alle ${count} erledigten manuellen Deadlines unwiderruflich löschen?\n\nDie Aktion betrifft alle erledigten manuellen Einträge, unabhängig vom Textfilter.`,
+                'Erledigte manuelle Deadlines löschen'
+            );
+
+            if (!confirmed) return;
+
+            try {
+                db.run('DELETE FROM manual_deadlines WHERE completed = 1');
+                saveDatabase(true);
+                loadTodos();
+                updateSyncIndicator();
+                showStatus(`${count} erledigte manuelle Deadline(s) gelöscht`, 'success');
+            } catch (error) {
+                console.error('Fehler beim Löschen erledigter manueller Deadlines:', error);
+                showStatus('Fehler beim Löschen: ' + error.message, 'error');
+            }
+        }
+
+        function updateManualDeadlineCleanupButton() {
+            const btn = document.getElementById('deleteCompletedManualBtn');
+            if (!btn) return;
+
+            const count = manualCompletedCount || 0;
+            const show = activeFilters.includes('erledigt') && count > 0;
+            btn.hidden = !show;
+            btn.textContent = `Erledigte manuelle löschen (${count})`;
+        }
+
+        function generateManualICSContent(uuid, manualId) {
+            const result = db.exec(`
+                SELECT title, due_date, description, source
+                FROM manual_deadlines
+                WHERE id = ?
+            `, [manualId]);
+
+            if (result.length === 0 || result[0].values.length === 0) {
+                throw new Error('Manuelle Deadline nicht gefunden');
+            }
+
+            const [title, dueDate, description, source] = result[0].values[0];
+
+            let ics = `BEGIN:VCALENDAR\r\n`;
+            ics += `VERSION:2.0\r\n`;
+            ics += `PRODID:-//ToDo Manager//ICS Export//EN\r\n`;
+            ics += `METHOD:PUBLISH\r\n`;
+            ics += `BEGIN:VEVENT\r\n`;
+            ics += `UID:${uuid}\r\n`;
+            ics += `DTSTAMP:${new Date().toISOString().replace(/[:-]/g, '').replace(/\.\d{3}/, '')}Z\r\n`;
+            ics += `DTSTART;VALUE=DATE:${dueDate.replace(/-/g, '')}\r\n`;
+            ics += `DTEND;VALUE=DATE:${dueDate.replace(/-/g, '')}\r\n`;
+            ics += `SUMMARY:${(title || 'Manuelle Deadline').replace(/[\\;,\n]/g, '\\$&')}\r\n`;
+
+            if (description && description.trim()) {
+                const escapedDesc = description.replace(/\n/g, '\\n').replace(/[\\;]/g, '\\$&');
+                ics += `DESCRIPTION:${escapedDesc}\r\n`;
+            }
+
+            if (source && source.trim()) {
+                ics += `URL:${source}\r\n`;
+            }
+
+            ics += `END:VEVENT\r\n`;
+            ics += `END:VCALENDAR\r\n`;
+            return ics;
+        }
+
+        function downloadManualDeadlineICS(manualId) {
+            try {
+                const result = db.exec(`
+                    SELECT uuid, title, due_date
+                    FROM manual_deadlines
+                    WHERE id = ?
+                `, [manualId]);
+
+                if (result.length === 0 || result[0].values.length === 0) {
+                    throw new Error('Manuelle Deadline nicht gefunden');
+                }
+
+                const [uuid, title, dueDate] = result[0].values[0];
+                const icsContent = generateManualICSContent(uuid, manualId);
+                const safeNamePart = (title || 'Manuelle_Deadline').replace(/[^a-zA-Z0-9_-]/g, '_');
+                const filename = `${safeNamePart}_${dueDate}.ics`;
+
+                db.run(`
+                    UPDATE manual_deadlines
+                    SET exported_at = datetime('now'), updated_at = datetime('now')
+                    WHERE id = ?
+                `, [manualId]);
+
+                downloadFile(filename, icsContent);
+                showStatus('ICS-Datei erfolgreich exportiert', 'success');
+                saveDatabase(true);
+                loadTodos();
+                updateSyncIndicator();
+            } catch (error) {
+                console.error('Fehler beim ICS-Export:', error);
+                showStatus('Fehler beim ICS-Export: ' + error.message, 'error');
+            }
+        }
+
         // Event-Modal öffnen
         function openEventModal(eventId = null) {
             // Vorschläge laden, falls noch nicht geschehen
@@ -4260,16 +5506,14 @@
 
                 const globalAllTodos = window.allTodos || allTodos;
                 if (globalAllTodos && globalAllTodos.length > 0) {
-                    // Verwende globale allTodos für korrekte Zählung (inkl. wiederkehrender Instanzen)
+                    // Filter über eventId (nicht eventName!), sonst werden ToDos
+                    // gleichnamiger Ereignisse fälschlich mitgezählt.
                     const eventTodos = globalAllTodos.filter(todo =>
                         todo.type === 'task' &&
-                        todo.eventName === eventName &&
+                        todo.eventId === id &&
                         !todo.completed
                     );
                     unfinishedCount = eventTodos.length;
-
-                    
-                    // Event-Details für Bestätigung verfügbar
                 } else {
                     // Fallback zu Datenbank-Query (ohne wiederkehrende Instanzen)
 
@@ -4453,7 +5697,8 @@
 
             updateFilterButtonStates();
             applyTodoFilters();
-            updateTodoCounts(); // Anzahl der Aufgaben aktualisieren
+            updateTodoCounts();
+            updateManualDeadlineCleanupButton();
         }
 
         function toggleFilter() {
@@ -4471,6 +5716,7 @@
             }
 
             applyTodoFilters();
+            updateManualDeadlineCleanupButton();
         }
 
         function getTodoStatusClass(todo) {
@@ -4500,12 +5746,13 @@
 
         function applyTodoFilters() {
             const todoItems = document.querySelectorAll('.todo-item');
+            const needle = (todoTitleFilter || '').trim().toLowerCase();
 
             todoItems.forEach(item => {
                 const li = item.closest('li');
                 if (!li) return;
 
-                let shouldShow = false;
+                let shouldShowStatus = false;
 
                 // Prüfen, ob es eine .todo-main Klasse gibt (normale Todo)
                 const todoMain = item.querySelector('.todo-main');
@@ -4535,12 +5782,28 @@
                     }
 
                     // Prüfen, ob dieser Status in den aktiven Filtern ist
-                    shouldShow = activeFilters.includes(todoStatus) ||
+                    shouldShowStatus = activeFilters.includes(todoStatus) ||
                                (todoStatus === 'event' && activeFilters.length === 0); // Events immer anzeigen wenn keine Filter aktiv
                 } else {
                     // Andere Elemente immer anzeigen
-                    shouldShow = true;
+                    shouldShowStatus = true;
                 }
+
+                // Live-Textfilter: gesamten sichtbaren Text des Eintrags durchsuchen
+                // (Task-Typ, Event-Name, Event-Datum, Beschreibungen, Quelle, Fälligkeit, Notiz)
+                let shouldShowTitle = true;
+                if (needle) {
+                    let haystack = item.textContent || '';
+                    // Aktueller Notiz-Wert: textContent enthält nur den initialen Wert eines <textarea>,
+                    // nicht den später getippten Inhalt – daher explizit anhängen.
+                    const noteInput = item.querySelector('.todo-note-input');
+                    if (noteInput && noteInput.value) {
+                        haystack += ' ' + noteInput.value;
+                    }
+                    shouldShowTitle = haystack.toLowerCase().includes(needle);
+                }
+
+                const shouldShow = shouldShowStatus && shouldShowTitle;
 
                 // Anzeige umschalten
                 if (shouldShow) {
@@ -4636,6 +5899,161 @@
         document.getElementById('serverConfigForm').addEventListener('submit', saveServerConfig);
 
         // ============================
+        // DEADLINE-SCHWELLEN-DIALOG
+        // ============================
+
+        const DEADLINE_CONFIG_AXIS_MAX = 60;
+
+        // Aktuelle Werte aus den drei Range-Inputs auslesen.
+        function readDeadlineConfigSliders() {
+            return {
+                critical: parseInt(document.querySelector('.deadline-config-slider[data-handle="critical"]').value, 10),
+                warning: parseInt(document.querySelector('.deadline-config-slider[data-handle="warning"]').value, 10),
+                soon: parseInt(document.querySelector('.deadline-config-slider[data-handle="soon"]').value, 10)
+            };
+        }
+
+        // Werte in die Slider schreiben (ohne Events auszulösen).
+        function writeDeadlineConfigSliders(cfg) {
+            document.querySelector('.deadline-config-slider[data-handle="critical"]').value = cfg.critical;
+            document.querySelector('.deadline-config-slider[data-handle="warning"]').value = cfg.warning;
+            document.querySelector('.deadline-config-slider[data-handle="soon"]').value = cfg.soon;
+        }
+
+        // Sicherstellen, dass critical < warning < soon, indem benachbarte Slider
+        // bei Bedarf "mitgeschoben" werden. changedKey ist der gerade bewegte Slider.
+        function enforceDeadlineConfigOrder(changedKey) {
+            const cfg = readDeadlineConfigSliders();
+            const max = DEADLINE_CONFIG_AXIS_MAX;
+
+            if (changedKey === 'critical') {
+                if (cfg.critical >= cfg.warning) cfg.warning = Math.min(max - 1, cfg.critical + 1);
+                if (cfg.warning >= cfg.soon)    cfg.soon    = Math.min(max,     cfg.warning + 1);
+                if (cfg.critical >= cfg.warning) cfg.critical = cfg.warning - 1;
+            } else if (changedKey === 'warning') {
+                if (cfg.warning <= cfg.critical) cfg.critical = Math.max(1, cfg.warning - 1);
+                if (cfg.warning >= cfg.soon)     cfg.soon     = Math.min(max, cfg.warning + 1);
+                if (cfg.warning >= cfg.soon)     cfg.warning  = cfg.soon - 1;
+            } else if (changedKey === 'soon') {
+                if (cfg.soon <= cfg.warning)    cfg.warning  = Math.max(2, cfg.soon - 1);
+                if (cfg.warning <= cfg.critical) cfg.critical = Math.max(1, cfg.warning - 1);
+                if (cfg.soon <= cfg.warning)    cfg.soon     = cfg.warning + 1;
+            }
+
+            cfg.critical = Math.min(Math.max(cfg.critical, 1), max - 2);
+            cfg.warning  = Math.min(Math.max(cfg.warning,  cfg.critical + 1), max - 1);
+            cfg.soon     = Math.min(Math.max(cfg.soon,     cfg.warning + 1),  max);
+
+            writeDeadlineConfigSliders(cfg);
+            return cfg;
+        }
+
+        // Farbsegmente, Daumen-Labels und Legende anhand der Slider-Werte rendern.
+        function renderDeadlineConfigPreview() {
+            const cfg = readDeadlineConfigSliders();
+            const max = DEADLINE_CONFIG_AXIS_MAX;
+
+            const cPct = (cfg.critical / max) * 100;
+            const wPct = (cfg.warning  / max) * 100;
+            const sPct = (cfg.soon     / max) * 100;
+
+            const track = document.getElementById('deadlineConfigTrack');
+            if (!track) return;
+
+            const seg = (zone) => track.querySelector(`.deadline-config-segment[data-zone="${zone}"]`);
+            seg('critical').style.left  = '0%';
+            seg('critical').style.width = cPct + '%';
+            seg('warning').style.left   = cPct + '%';
+            seg('warning').style.width  = (wPct - cPct) + '%';
+            seg('soon').style.left      = wPct + '%';
+            seg('soon').style.width     = (sPct - wPct) + '%';
+            seg('normal').style.left    = sPct + '%';
+            seg('normal').style.width   = (100 - sPct) + '%';
+
+            const setLabel = (handle, value, pct) => {
+                const el = track.querySelector(`.deadline-config-thumb-label[data-handle="${handle}"]`);
+                if (!el) return;
+                el.textContent = value + ' T';
+                el.style.left = pct + '%';
+            };
+            setLabel('critical', cfg.critical, cPct);
+            setLabel('warning',  cfg.warning,  wPct);
+            setLabel('soon',     cfg.soon,     sPct);
+
+            const legend = document.getElementById('deadlineConfigLegend');
+            if (legend) {
+                legend.querySelector('[data-legend="critical"]').textContent =
+                    `Aktuell: bis ${cfg.critical} ${cfg.critical === 1 ? 'Tag' : 'Tage'}`;
+                legend.querySelector('[data-legend="warning"]').textContent =
+                    `Anstehend: ${cfg.critical + 1} – ${cfg.warning} Tage`;
+                legend.querySelector('[data-legend="soon"]').textContent =
+                    `Bald: ${cfg.warning + 1} – ${cfg.soon} Tage`;
+                legend.querySelector('[data-legend="normal"]').textContent =
+                    `Offen: ab ${cfg.soon + 1} Tagen`;
+            }
+        }
+
+        // Dialog öffnen: aktuelle Werte in die Slider laden und Vorschau rendern.
+        function openDeadlineConfigModal() {
+            if (!db) {
+                showStatus('Datenbank nicht verfügbar', 'error');
+                return;
+            }
+
+            const cfg = sanitizeDeadlineConfig(DEADLINE_CONFIG) || { ...DEADLINE_CONFIG_DEFAULTS };
+
+            // Falls ein gespeicherter Wert über die Achse hinausgeht, auf max begrenzen.
+            const clamped = {
+                critical: Math.min(cfg.critical, DEADLINE_CONFIG_AXIS_MAX - 2),
+                warning:  Math.min(cfg.warning,  DEADLINE_CONFIG_AXIS_MAX - 1),
+                soon:     Math.min(cfg.soon,     DEADLINE_CONFIG_AXIS_MAX)
+            };
+            writeDeadlineConfigSliders(clamped);
+            enforceDeadlineConfigOrder('critical');
+            renderDeadlineConfigPreview();
+
+            document.getElementById('deadlineConfigModal').style.display = 'flex';
+        }
+
+        function closeDeadlineConfigModal() {
+            document.getElementById('deadlineConfigModal').style.display = 'none';
+        }
+
+        function saveDeadlineConfigForm(e) {
+            e.preventDefault();
+
+            const cfg = readDeadlineConfigSliders();
+            const ok = saveDeadlineConfig(cfg);
+            if (!ok) {
+                showStatus('Ungültige Werte – bitte erneut prüfen', 'error');
+                return;
+            }
+
+            closeDeadlineConfigModal();
+            showStatus('Deadline-Schwellen gespeichert', 'success');
+
+            // Listen neu rendern, damit Farben und Filter-Counter sofort passen.
+            if (typeof loadTodos === 'function') loadTodos();
+            if (typeof loadEvents === 'function') loadEvents();
+        }
+
+        // Slider-Listener (input → enforce + preview, change → preview).
+        document.querySelectorAll('.deadline-config-slider').forEach(slider => {
+            slider.addEventListener('input', (ev) => {
+                const handle = ev.target.dataset.handle;
+                enforceDeadlineConfigOrder(handle);
+                renderDeadlineConfigPreview();
+            });
+        });
+
+        document.getElementById('deadlineConfigForm').addEventListener('submit', saveDeadlineConfigForm);
+
+        document.getElementById('deadlineConfigResetBtn').addEventListener('click', () => {
+            writeDeadlineConfigSliders(DEADLINE_CONFIG_DEFAULTS);
+            renderDeadlineConfigPreview();
+        });
+
+        // ============================
         // SERVER-SERVER-KONFIGURATION UND SYNC-FUNKTIONEN
         // ============================
 
@@ -4657,24 +6075,27 @@
                 const encryptionKeyResult = db.exec(`
                     SELECT value FROM metadata WHERE key = 'encryption_key'
                 `);
+                const exportReminderEnabledResult = db.exec(`
+                    SELECT value FROM metadata WHERE key = 'export_reminder_enabled'
+                `);
 
                 const serverUrl = serverUrlResult.length > 0 ? serverUrlResult[0].values[0][0] : '';
                 const userUid = userUidResult.length > 0 ? userUidResult[0].values[0][0] : '';
                 const encryptionKey = encryptionKeyResult.length > 0 ? encryptionKeyResult[0].values[0][0] : '';
+                const exportReminderEnabled = exportReminderEnabledResult.length === 0 ||
+                    exportReminderEnabledResult[0].values.length === 0 ||
+                    exportReminderEnabledResult[0].values[0][0] !== 'false';
 
                 document.getElementById('serverUrl').value = serverUrl;
                 document.getElementById('userUid').value = userUid;
                 document.getElementById('encryptionKey').value = encryptionKey;
+                document.getElementById('exportReminderEnabled').checked = exportReminderEnabled;
 
                 // Password Toggle Setup
                 const toggleBtn = document.getElementById('toggleEncryptionKey');
                 const passwordInput = document.getElementById('encryptionKey');
                 if (toggleBtn && passwordInput) {
-                    toggleBtn.addEventListener('click', function(e) {
-                        console.log('Click event triggered');
-                    });
                     toggleBtn.addEventListener('touchstart', function(e) {
-                        console.log('Touch event triggered');
                         e.preventDefault(); // Prevent touch scrolling
                         const isCurrentlyPassword = passwordInput.type === 'password';
                         passwordInput.type = isCurrentlyPassword ? 'text' : 'password';
@@ -4716,6 +6137,7 @@
             const userUid = document.getElementById('userUid').value;
             const deviceName = document.getElementById('deviceName').value.trim();
             const encryptionKey = document.getElementById('encryptionKey').value.trim();
+            const exportReminderEnabled = document.getElementById('exportReminderEnabled').checked;
 
             try {
                 // Server-Konfiguration in Metadata speichern
@@ -4728,6 +6150,11 @@
                     INSERT OR REPLACE INTO metadata (key, value, updated_at)
                     VALUES ('user_uid', ?, datetime('now'))
                 `, [userUid]);
+
+                db.run(`
+                    INSERT OR REPLACE INTO metadata (key, value, updated_at)
+                    VALUES ('export_reminder_enabled', ?, datetime('now'))
+                `, [exportReminderEnabled ? 'true' : 'false']);
 
                 // Verschlüsselungs-Key speichern (leer = keine Verschlüsselung)
                 if (encryptionKey) {
@@ -4759,6 +6186,9 @@
 
                 // Sync-Status aktualisieren (neue Konfiguration)
                 updateSyncIndicator();
+
+                // Export-Reminder entsprechend der neuen Einstellung aktualisieren
+                checkAndShowExportReminder();
 
                 // Kontakt-Button-Sichtbarkeit aktualisieren
                 updateContactVisibility();
@@ -4962,14 +6392,21 @@
                         manualBtn.title = 'Upload zur Datenbank';
                     }
                     // AUTOMATISCHER UPLOAD: Nach kurzer Verzögerung automatisch ausführen
-                    setTimeout(async () => {
-                        try {
-                            await uploadDatabaseToServer();
-                            setTimeout(() => updateSyncIndicator(), 1000);
-                        } catch (error) {
-                            console.error('Automatischer Upload fehlgeschlagen:', error);
-                        }
-                    }, 500); // 500ms Verzögerung für bessere UX
+                    if (autoUploadPausedAfterFailure) {
+                        // Nach einem fehlgeschlagenen Auto-Upload nur noch manuell erneut versuchen.
+                    } else if (!pendingAutoSyncTimeout) {
+                        pendingAutoSyncTimeout = setTimeout(async () => {
+                            pendingAutoSyncTimeout = null;
+                            try {
+                                const success = await uploadDatabaseToServer();
+                                if (success) {
+                                    setTimeout(() => updateSyncIndicator(), 1000);
+                                }
+                            } catch (error) {
+                                console.error('Automatischer Upload fehlgeschlagen:', error);
+                            }
+                        }, 500);
+                    }
                     break;
 
                 case 'download_needed':
@@ -4982,18 +6419,20 @@
                         manualBtn.title = 'Download vom Server';
                     }
                     // AUTOMATISCHER DOWNLOAD: Nach kurzer Verzögerung automatisch ausführen
-                    setTimeout(async () => {
-                        // NEU: Vor Automatik: Prüfe Deaktivierung
-                        if (syncSuggestionDisabledUntil && Date.now() < syncSuggestionDisabledUntil) {
-                            return;
-                        }
-                        try {
-                            await downloadDatabaseFromServer(true);  // Automatisch ohne Bestätigung ➜ (true) / mit Nachfrage ➜ ()
-                            setTimeout(() => updateSyncIndicator(), 1000);
-                        } catch (error) {
-                            console.error('Automatischer Download fehlgeschlagen:', error);
-                        }
-                    }, 500); // 500ms Verzögerung für bessere UX
+                    if (!pendingAutoSyncTimeout) {
+                        pendingAutoSyncTimeout = setTimeout(async () => {
+                            pendingAutoSyncTimeout = null;
+                            if (syncSuggestionDisabledUntil && Date.now() < syncSuggestionDisabledUntil) {
+                                return;
+                            }
+                            try {
+                                await downloadDatabaseFromServer(true);
+                                setTimeout(() => updateSyncIndicator(), 1000);
+                            } catch (error) {
+                                console.error('Automatischer Download fehlgeschlagen:', error);
+                            }
+                        }, 500);
+                    }
                     break;
 
                 case 'conflict':
@@ -5018,14 +6457,16 @@
                         manualBtn.title = 'Ersten Upload';
                     }
                     // AUTOMATISCHER ERSTER UPLOAD: Nach kurzer Verzögerung automatisch ausführen
-                    setTimeout(async () => {
-                        try {
-                            await confirmNoServerDataUpload();
-                            setTimeout(() => updateSyncIndicator(), 1000);
-                        } catch (error) {
-                            console.error('Automatischer erster Upload fehlgeschlagen:', error);
-                        }
-                    }, 500); // 500ms Verzögerung für bessere UX
+                    if (!pendingAutoSyncTimeout) {
+                        pendingAutoSyncTimeout = setTimeout(async () => {
+                            pendingAutoSyncTimeout = null;
+                            try {
+                                await confirmNoServerDataUpload();
+                            } catch (error) {
+                                console.error('Automatischer erster Upload fehlgeschlagen:', error);
+                            }
+                        }, 500);
+                    }
                     break;
 
                 case 'error':
@@ -5054,9 +6495,10 @@
                 existingBtn.parentNode.replaceChild(newManualBtn, existingBtn);
                 newManualBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    await actionFunction();
-                    // Nach Aktion Status neu prüfen
-                    setTimeout(() => updateSyncIndicator(), 1000);
+                    const result = await actionFunction();
+                    if (result !== false) {
+                        setTimeout(() => updateSyncIndicator(), 1000);
+                    }
                 });
             }
 
@@ -5422,7 +6864,7 @@
             result.set(new Uint8Array(encrypted), salt.length + iv.length);
 
             // Base64 für JSON-Transport
-            return btoa(String.fromCharCode.apply(null, result));
+            return arrayBufferToBase64(result);
         }
 
         // Daten entschlüsseln
@@ -5535,10 +6977,10 @@
                 // Datenbank-Tabellen verifizieren
                 const tables = newDb.exec(`
                     SELECT name FROM sqlite_master
-                    WHERE type='table' AND name IN ('events', 'tasks', 'completed_tasks', 'metadata', 'calendar_todos')
+                    WHERE type='table' AND name IN ('events', 'tasks', 'completed_tasks', 'metadata', 'calendar_todos', 'manual_deadlines', 'task_recurrences')
                 `);
 
-                if (tables.length === 0 || tables[0].values.length < 4) {
+                if (tables.length === 0 || tables[0].values.length < 5) {
                     throw new Error('Ungültige Datenbankstruktur in heruntergeladenen Daten');
                 }
 
@@ -5556,12 +6998,13 @@
         // Datenbank zum Server hochladen
         async function uploadDatabaseToServer() {
             const config = getServerConfig();
-            if (!config) return;
+            if (!config) return false;
 
             try {
                 showStatus('Lade Datenbank zum Server hoch...', 'info');
 
                 const jsonData = await serializeDatabaseAsJSON();
+
                 const payload = {
                     action: 'upload',
                     uid: config.uid,
@@ -5571,8 +7014,7 @@
                 const response = await fetch(config.url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
@@ -5584,9 +7026,7 @@
                 const result = await response.json();
 
                 if (result.success) {
-                    // Sync-Zeitpunkt aktualisieren und lokale Änderungszeit zurücksetzen
                     const now = new Date().toISOString();
-                    
 
                     db.run(`
                         INSERT OR REPLACE INTO metadata (key, value, updated_at)
@@ -5599,16 +7039,19 @@
                     `, [now]);
 
                     saveDatabase();
-                    
 
                     showStatus('Datenbank erfolgreich zum Server hochgeladen', 'success');
+                    autoUploadPausedAfterFailure = false;
+                    return true;
                 } else {
                     throw new Error(result.message || 'Unbekannter Fehler beim Upload');
                 }
 
             } catch (error) {
                 console.error('Fehler beim Hochladen:', error);
+                autoUploadPausedAfterFailure = true;
                 showStatus(`Fehler beim Hochladen: ${error.message}`, 'error');
+                return false;
             }
         }
 
@@ -5628,8 +7071,7 @@
                 const response = await fetch(config.url, {
                     method: 'POST',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Cache-Control': 'no-cache'
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
@@ -5663,6 +7105,7 @@
 
                         // Datenbank ersetzen
                         db = serverData.db;
+                        createTablesIfNeeded();
 
                         // Datenbank speichern und neu laden
                         saveDatabase();
@@ -5720,6 +7163,19 @@
             }
         });
 
+        // Deadline-Config-Modal: Klick außerhalb schließt den Dialog
+        document.getElementById('deadlineConfigModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('deadlineConfigModal')) {
+                closeDeadlineConfigModal();
+            }
+        });
+
+        document.getElementById('manualDeadlineModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('manualDeadlineModal')) {
+                closeManualDeadlineModal();
+            }
+        });
+
         // Backup-Versionen Event-Listener
         document.getElementById('backupVersionsBtn').addEventListener('click', (e) => {
             e.preventDefault();
@@ -5735,6 +7191,15 @@
         document.getElementById('backupVersionsModal').querySelector('.close').addEventListener('click', closeBackupVersionsModal);
 
         document.getElementById('closeVersionsBtn').addEventListener('click', closeBackupVersionsModal);
+
+        document.getElementById('uploadSyncBtn').addEventListener('click', async () => {
+            await uploadDatabaseToServer();
+            loadBackupVersions();
+        });
+
+        document.getElementById('downloadSyncBtn').addEventListener('click', () => {
+            downloadDatabaseFromServer();
+        });
 
         // ============================
         // BACKUP-VERSIONEN FUNKTIONEN
@@ -6013,98 +7478,6 @@
                 showStatus('Fehler beim Senden der Nachricht: ' + error.message, 'error');
             }
         }
-
-        // ============================
-        // TEST-FUNKTIONEN FÜR VERSCHLÜSSELUNG
-        // ============================
-
-        // Test der Verschlüsselung/Entschlüsselung
-        async function testEncryption() {
-            try {
-                const testKey = 'meinTestPasswort123';
-                const testData = 'Hello, verschlüsselte Welt!';
-                console.log('=== Verschlüsselungs-Test ===');
-                console.log('Original-Daten:', testData);
-
-                // Verschlüsseln
-                const encrypted = await encryptData(testData, testKey);
-                console.log('Verschlüsselte Daten:', encrypted);
-
-                // Entschlüsseln
-                const decrypted = await decryptData(encrypted, testKey);
-                console.log('Entschlüsselte Daten:', decrypted);
-
-                // Prüfen ob identisch
-                if (testData === decrypted) {
-                    console.log('✅ Verschlüsselung/Entschlüsselung erfolgreich!');
-                    return true;
-                } else {
-                    console.error('❌ Daten stimmen nicht überein!');
-                    return false;
-                }
-            } catch (error) {
-                console.error('❌ Verschlüsselungs-Test fehlgeschlagen:', error);
-                return false;
-            }
-        }
-
-        // Test der Datenbank-Serialisierung mit Verschlüsselung
-        async function testDatabaseSerialization() {
-            try {
-                console.log('=== Datenbank-Serialisierung-Test ===');
-
-                // Konfiguration setzen für Test
-                db.run(`INSERT OR REPLACE INTO metadata (key, value, updated_at) VALUES ('encryption_key', 'testkey123', datetime('now'))`);
-
-                // Serialisierung testen
-                const serialized = await serializeDatabaseAsJSON();
-                console.log('Serialisierte Daten enthalten Verschlüsselung:', serialized.encrypted);
-
-                // Deserialisierung testen
-                const deserialized = await deserializeDatabaseFromJSON(serialized);
-                console.log('✅ Datenbank-Serialisierung/Deserialisierung erfolgreich!');
-
-                // Test-Key zurücksetzen
-                db.run(`DELETE FROM metadata WHERE key = 'encryption_key'`);
-
-                return true;
-            } catch (error) {
-                console.error('❌ Datenbank-Serialisierung-Test fehlgeschlagen:', error);
-                return false;
-            }
-        }
-
-        // Alle Tests ausführen (im Browser-Konsole aufrufen)
-        async function runAllTests() {
-            console.log('=== STARTE INTEGRATIONSTESTS FÜR VERSCHLÜSSELUNG ===');
-
-            let encryptionTest = false;
-            let serializationTest = false;
-
-            try {
-                if (db) {
-                    encryptionTest = await testEncryption();
-                    serializationTest = await testDatabaseSerialization();
-                } else {
-                    console.warn('⚠️ Datenbank nicht verfügbar - überspringe Tests');
-                }
-            } catch (error) {
-                console.error('❌ Fehler beim Testen:', error);
-            }
-
-            console.log('\n=== TESTERGEBNIS ===');
-            console.log('• Verschlüsselung:', encryptionTest ? '✅ Erfolgreich' : '❌ Fehlgeschlagen');
-            console.log('• Datenbank-Serialisierung:', serializationTest ? '✅ Erfolgreich' : '❌ Fehlgeschlagen');
-
-            if (encryptionTest && serializationTest) {
-                console.log('🎉 Alle Tests erfolgreich bestanden!');
-            }
-        }
-
-        // Konsolen-Befehle für Tests:
-        // runAllTests() - Führt alle Tests aus
-        // testEncryption() - Testet nur Verschlüsselung
-        // testDatabaseSerialization() - Testet nur Datenbank-Serialisierung
 
     </script>
 </body>
