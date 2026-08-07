@@ -16,6 +16,8 @@
             --dark: #34495e;
             --light: #ecf0f1;
             --gray: #95a5a6;
+            --box-3: #c8a017;
+            --box-4: #8bc34a;
             --bg-color: #f5f7fa;
             --card-bg: white;
             --header-bg: white;
@@ -39,6 +41,8 @@
             --dark: #aab7b8;
             --light: #34495e;
             --gray: #5d6d7e;
+            --box-3: #d4b02a;
+            --box-4: #9ccc65;
             --bg-color: #1a1a1a;
             --card-bg: #2d2d2d;
             --header-bg: #2d2d2d;
@@ -92,6 +96,17 @@
         h1 {
             color: var(--dark);
             font-weight: 600;
+        }
+
+        #appTitle {
+            color: var(--primary);
+            cursor: pointer;
+            user-select: none;
+            transition: opacity 0.2s;
+        }
+
+        #appTitle:hover {
+            opacity: 0.85;
         }
 
         .actions {
@@ -418,6 +433,32 @@
             box-shadow: 0 2px 6px var(--shadow);
         }
 
+        .stat-card.is-clickable {
+            cursor: pointer;
+            text-align: left;
+            font: inherit;
+            color: inherit;
+            width: 100%;
+            transition: border-color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .stat-card.is-clickable:hover,
+        .stat-card.is-clickable:focus-visible {
+            border-color: var(--primary);
+            background: rgba(52, 152, 219, 0.06);
+            outline: none;
+        }
+
+        .stat-card.is-clickable:disabled {
+            cursor: default;
+            opacity: 0.55;
+        }
+
+        .stat-card.is-clickable:disabled:hover {
+            border-color: var(--border-color);
+            background: var(--card-bg);
+        }
+
         .stat-card .stat-label {
             font-size: 13px;
             color: var(--text-muted);
@@ -572,7 +613,9 @@
             display: none;
         }
 
-        #verseBookSuggestions {
+        #verseBookSuggestions,
+        #verseTagSuggestions,
+        #stelleBookSuggestions {
             max-height: min(320px, 45vh);
             z-index: 30;
         }
@@ -887,64 +930,140 @@
             margin-top: 8px;
         }
 
-        .memory-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-            gap: 12px;
-            margin-top: 16px;
+        .stelle-prompt-text {
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+            line-height: 1.5;
         }
 
-        .memory-card {
-            min-height: 100px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--card-bg);
-            cursor: pointer;
+        .practice-feedback {
+            margin-top: 20px;
+            padding: 16px 18px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            animation: practiceFeedbackIn 0.28s ease-out;
+        }
+
+        .practice-feedback.is-correct {
+            background: color-mix(in srgb, var(--secondary) 14%, var(--card-bg));
+            border-color: color-mix(in srgb, var(--secondary) 42%, transparent);
+        }
+
+        .practice-feedback.is-wrong {
+            background: color-mix(in srgb, var(--danger) 11%, var(--card-bg));
+            border-color: color-mix(in srgb, var(--danger) 38%, transparent);
+        }
+
+        .practice-feedback-status {
             display: flex;
             align-items: center;
-            justify-content: center;
-            padding: 12px;
-            text-align: center;
-            font-size: 13px;
-            transition: transform 0.15s, border-color 0.15s;
-            user-select: none;
-        }
-
-        .memory-card:hover:not(.matched):not(.flipped) {
-            border-color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .memory-card.face-down {
-            background: linear-gradient(135deg, rgba(52, 152, 219, 0.2), rgba(46, 204, 113, 0.15));
-            color: transparent;
-            font-size: 0;
-        }
-
-        .memory-card.face-down::after {
-            content: '?';
-            color: var(--primary);
-            font-size: 1.6em;
+            gap: 8px;
+            font-size: 1.2em;
             font-weight: 700;
+            margin: 0 0 14px;
+            line-height: 1.3;
         }
 
-        .memory-card.flipped,
-        .memory-card.matched {
-            color: var(--text-color);
-            white-space: pre-wrap;
-            font-size: 13px;
+        .practice-feedback.is-correct .practice-feedback-status {
+            color: var(--secondary);
         }
 
-        .memory-card.matched {
-            border-color: var(--secondary);
-            background: rgba(46, 204, 113, 0.12);
-            cursor: default;
-            opacity: 0.85;
+        .practice-feedback.is-wrong .practice-feedback-status {
+            color: var(--danger);
         }
 
-        .memory-card.ref-card.flipped,
-        .memory-card.ref-card.matched {
+        .practice-feedback-status-mark {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.55em;
+            height: 1.55em;
+            border-radius: 50%;
+            font-size: 0.85em;
+            font-weight: 700;
+            flex-shrink: 0;
+            color: #fff;
+        }
+
+        .practice-feedback.is-correct .practice-feedback-status-mark {
+            background: var(--secondary);
+        }
+
+        .practice-feedback.is-wrong .practice-feedback-status-mark {
+            background: var(--danger);
+        }
+
+        .practice-feedback-compare {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .practice-feedback-row {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 11px 13px;
+            border-radius: 8px;
+            background: var(--card-bg);
+            border: 1.5px solid var(--border-color);
+        }
+
+        .practice-feedback-row.is-solution {
+            border-color: color-mix(in srgb, var(--secondary) 55%, var(--border-color));
+        }
+
+        .practice-feedback-row.is-given.is-mismatch {
+            border-color: color-mix(in srgb, var(--danger) 55%, var(--border-color));
+        }
+
+        .practice-feedback-row.is-given.is-match {
+            border-color: color-mix(in srgb, var(--secondary) 45%, var(--border-color));
+        }
+
+        .practice-feedback-label {
+            font-size: 11px;
             font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .practice-feedback-value {
+            font-size: 1.08em;
+            font-weight: 600;
+            color: var(--text-color);
+            line-height: 1.4;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+
+        .practice-feedback-row.is-solution .practice-feedback-value {
+            color: color-mix(in srgb, var(--secondary) 35%, var(--text-color));
+        }
+
+        .practice-feedback-row.is-given.is-mismatch .practice-feedback-value {
+            color: color-mix(in srgb, var(--danger) 40%, var(--text-color));
+        }
+
+        .practice-feedback .btn {
+            margin-top: 2px;
+        }
+
+        .practice-feedback .cloze-user-answers {
+            margin-top: 0;
+        }
+
+        @keyframes practiceFeedbackIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .burger-content a.active {
@@ -967,7 +1086,7 @@
         }
 
         .badge[data-tooltip],
-        .stat-card[data-tooltip] {
+        .stat-card[data-tooltip]:not(.is-clickable) {
             cursor: help;
         }
 
@@ -1014,11 +1133,329 @@
             margin-bottom: 0;
         }
 
-        .learn-box-chips {
+        .learn-box-chips,
+        .box-filter-bar {
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
             margin-top: 8px;
+        }
+
+        .box-filter-bar {
+            margin: 0 0 16px;
+        }
+
+        .box-filter-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--hover-bg);
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            line-height: 1.3;
+        }
+
+        .box-filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .box-filter-btn.active {
+            border-color: var(--primary);
+            background: rgba(52, 152, 219, 0.12);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .box-filter-btn:disabled {
+            opacity: 0.45;
+            cursor: default;
+        }
+
+        .box-filter-btn .box-filter-count {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stats-panel .stats-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+
+        .stats-panel .stats-panel-header h3 {
+            margin-bottom: 0;
+        }
+
+        .stats-panel-meta {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        .stats-kpi-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 560px) {
+            .stats-kpi-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stats-kpi {
+            background: var(--hover-bg);
+            border-radius: 8px;
+            padding: 14px 16px;
+            min-width: 0;
+        }
+
+        .stats-kpi-label {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .stats-kpi-value {
+            font-size: 1.55em;
+            font-weight: 700;
+            color: var(--dark);
+            font-variant-numeric: tabular-nums;
+            line-height: 1.2;
+        }
+
+        .stats-kpi-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .stats-section {
+            margin-top: 18px;
+        }
+
+        .stats-section-title {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+
+        .stats-trend {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 88px;
+            padding: 4px 0 0;
+        }
+
+        .stats-trend-bar-wrap {
+            flex: 1;
+            min-width: 0;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            cursor: help;
+        }
+
+        .stats-trend-bar {
+            width: 100%;
+            max-width: 28px;
+            border-radius: 4px 4px 2px 2px;
+            background: color-mix(in srgb, var(--primary) 55%, var(--border-color));
+            min-height: 3px;
+            transition: height 0.2s ease;
+        }
+
+        .stats-trend-bar.has-activity {
+            background: var(--primary);
+        }
+
+        .stats-trend-bar.is-today {
+            background: var(--secondary);
+        }
+
+        .stats-trend-label {
+            font-size: 10px;
+            color: var(--text-muted);
+            line-height: 1;
+        }
+
+        .stats-box-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stats-box-row {
+            display: grid;
+            grid-template-columns: 52px 1fr 36px;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .stats-box-label {
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stats-box-track {
+            height: 10px;
+            border-radius: 5px;
+            background: var(--hover-bg);
+            overflow: hidden;
+        }
+
+        .stats-box-fill {
+            height: 100%;
+            border-radius: 5px;
+            background: var(--primary);
+            min-width: 0;
+            transition: width 0.25s ease;
+        }
+
+        .stats-box-fill.level-0 { background: var(--gray); }
+        .stats-box-fill.level-1 { background: var(--warning); }
+        .stats-box-fill.level-2 { background: var(--primary); }
+        .stats-box-fill.level-3 { background: var(--box-3); }
+        .stats-box-fill.level-4 { background: var(--box-4); }
+        .stats-box-fill.level-5 { background: var(--secondary); }
+
+        .stats-box-count {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-color);
+            font-weight: 600;
+        }
+
+        .stats-mode-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .stats-mode-chip {
+            display: inline-flex;
+            align-items: baseline;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: var(--hover-bg);
+            font-size: 13px;
+        }
+
+        .stats-mode-chip strong {
+            font-variant-numeric: tabular-nums;
+            color: var(--dark);
+        }
+
+        .stats-mode-chip span {
+            color: var(--text-muted);
+        }
+
+        .stats-weak-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .stats-weak-list li {
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .stats-weak-list li:last-child {
+            border-bottom: none;
+        }
+
+        .stats-weak-btn {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 0;
+            border: none;
+            background: transparent;
+            color: inherit;
+            font: inherit;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .stats-weak-btn:hover .stats-weak-ref,
+        .stats-weak-btn:focus-visible .stats-weak-ref {
+            color: var(--primary);
+        }
+
+        .stats-weak-ref {
+            font-weight: 600;
+            min-width: 0;
+        }
+
+        .stats-weak-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+            font-size: 13px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .stats-weak-pct {
+            font-weight: 700;
+            color: var(--danger);
+            min-width: 3.2em;
+            text-align: right;
+        }
+
+        .stats-weak-pct.is-ok {
+            color: var(--secondary);
+        }
+
+        .stats-empty {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .stats-grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 720px) {
+            .stats-grid-2 {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .box-verses-list .list-item {
+            padding: 10px 0;
+        }
+
+        .box-verses-list .list-item-text {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
 
         .form-group {
@@ -1090,6 +1527,11 @@
             justify-content: center;
             align-items: center;
         }
+
+        /* Gestapelte Modals: Bearbeiten über Box-Liste, Bestätigung darüber */
+        #boxVersesModal { z-index: 1000; }
+        #verseModal { z-index: 1100; }
+        #confirmModal { z-index: 1200; }
 
         .modal-content {
             background: var(--modal-bg);
@@ -1247,7 +1689,7 @@
                         <a href="#" data-view="practice" class="nav-link">Üben</a>
                     </div>
                 </div>
-                <h1 id="appTitle">BIMORY</h1>
+                <h1 id="appTitle" title="Zum Dashboard" role="link" tabindex="0">BIMORY</h1>
             </div>
             <div class="actions">
                 <div id="syncIndicator" class="sync-indicator" style="display: none; align-items: center; gap: 10px; margin-right: 15px;">
@@ -1421,7 +1863,7 @@
                         <label>Tags</label>
                         <div class="relative">
                             <div class="chip-input-wrap" id="verseTagChips">
-                                <input type="text" id="verseTagInput" placeholder="Tag tippen und Enter" autocomplete="off">
+                                <input type="text" id="verseTagInput" placeholder="Tag wählen oder tippen" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="verseTagSuggestions">
                             </div>
                             <div class="suggestions" id="verseTagSuggestions"></div>
                         </div>
@@ -1531,6 +1973,20 @@
                 </div>
             </div>
         </div>
+
+        <div id="boxVersesModal" class="modal">
+            <div class="modal-content" style="width: 640px;">
+                <div class="modal-header">
+                    <h2 id="boxVersesTitle">Verse in Box</h2>
+                    <span class="close" id="boxVersesModalClose">&times;</span>
+                </div>
+                <p id="boxVersesHint" class="list-item-meta" style="margin: 0 0 12px;"></p>
+                <div id="boxVersesList" class="box-verses-list"></div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button type="button" class="btn btn-outline" id="boxVersesClose">Schließen</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="contactModal" class="modal">
@@ -1609,7 +2065,7 @@
             { id: 'neh', names: { X: 'Nehemia' }, aliases: { X: ['Neh'] } },
             { id: 'est', names: { X: 'Esther' }, aliases: { X: ['Est', 'Ester'] } },
             { id: 'job', names: { X: 'Hiob' }, aliases: { X: ['Ijob', 'Job'] } },
-            { id: 'psa', names: { X: 'Die Psalmen' }, aliases: { X: ['Psalmen', 'Psalm', 'Ps'] } },
+            { id: 'psa', names: { X: 'Psalmen' }, aliases: { X: ['Die Psalmen', 'Psalm', 'Ps'] } },
             { id: 'pro', names: { X: 'Sprüche' }, aliases: { X: ['Spr', 'Sprueche', 'Prov'] } },
             { id: 'ecc', names: { X: 'Prediger' }, aliases: { X: ['Pred', 'Koh', 'Kohelet', 'Eccl'] } },
             { id: 'sng', names: { X: 'Das Hohe Lied' }, aliases: { X: ['Hohelied', 'Hld', 'Hohes Lied', 'Cant'] } },
@@ -1821,6 +2277,104 @@
             return scored.slice(0, limit);
         }
 
+        /**
+         * Erzeugt ein Bibelbuch-Autocomplete-Set für ein Formular.
+         * @param {string} prefix - ID-Prefix, z.B. 'verse' oder 'stelle'
+         * @param {Function} [onSelectExtra] - Optionaler Callback nach Buchauswahl
+         */
+        function makeBookAutocomplete(prefix, onSelectExtra) {
+            const ids = {
+                input: prefix + 'BookInput',
+                bookId: prefix + 'BookId',
+                suggestions: prefix + 'BookSuggestions',
+                chapter: prefix + 'Chapter',
+            };
+
+            function updateSuggestions(query) {
+                const box = document.getElementById(ids.suggestions);
+                if (!box) return;
+                const suggestions = getBookSuggestions(query);
+                if (!suggestions.length) {
+                    box.classList.remove('visible');
+                    box.innerHTML = '';
+                    return;
+                }
+                box.innerHTML = suggestions.map(s =>
+                    `<div data-book-id="${escapeHtml(s.id)}" data-book-name="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>`
+                ).join('');
+                box.classList.add('visible');
+                box.querySelectorAll('[data-book-id]').forEach(el => {
+                    el.addEventListener('mousedown', (e) => {
+                        e.preventDefault();
+                        selectBook(el.dataset.bookId, el.dataset.bookName);
+                    });
+                });
+            }
+
+            function selectBook(bookId, bookName) {
+                document.getElementById(ids.bookId).value = bookId;
+                document.getElementById(ids.input).value = bookName || getBookName(bookId);
+                hideSuggestions();
+                if (onSelectExtra) onSelectExtra();
+            }
+
+            function hideSuggestions() {
+                const box = document.getElementById(ids.suggestions);
+                if (!box) return;
+                box.classList.remove('visible');
+                box.innerHTML = '';
+            }
+
+            function commitInput() {
+                const input = document.getElementById(ids.input);
+                if (!input) return null;
+                const resolved = resolveBookIdFromInput(input.value);
+                if (resolved) {
+                    selectBook(resolved, getBookName(resolved));
+                    return resolved;
+                }
+                document.getElementById(ids.bookId).value = '';
+                return null;
+            }
+
+            function wire(focusInput) {
+                const bookInput = document.getElementById(ids.input);
+                if (!bookInput) return;
+                bookInput.addEventListener('input', () => {
+                    document.getElementById(ids.bookId).value = '';
+                    updateSuggestions(bookInput.value);
+                });
+                bookInput.addEventListener('focus', () => updateSuggestions(bookInput.value));
+                bookInput.addEventListener('blur', () => {
+                    setTimeout(() => {
+                        hideSuggestions();
+                        commitInput();
+                    }, 150);
+                });
+                bookInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const suggestions = getBookSuggestions(bookInput.value, UI_LANG, 1);
+                        if (suggestions.length) {
+                            selectBook(suggestions[0].id, suggestions[0].name);
+                        } else {
+                            commitInput();
+                        }
+                        document.getElementById(ids.chapter).focus();
+                    }
+                });
+                if (focusInput) bookInput.focus();
+            }
+
+            return { updateSuggestions, selectBook, hideSuggestions, commitInput, wire };
+        }
+
+        const verseBookAutocomplete = makeBookAutocomplete('verse', () => {
+            document.getElementById('verseRefWarn').hidden = true;
+            syncVerseFormJwpubUrl();
+        });
+        const stelleBookAutocomplete = makeBookAutocomplete('stelle');
+
         const SR_INTERVALS_DAYS = [0, 1, 3, 7, 14, 30];
         const CLOZE_HIDE_RATIOS = [0.20, 0.35, 0.50, 0.65, 0.80, 0.90];
         const CLOZE_STOPWORDS = new Set([
@@ -1845,7 +2399,18 @@
         let autoUploadPausedAfterFailure = false;
         let pendingAutoSyncTimeout = null;
         let currentView = 'dashboard';
-        let practicePrefs = { filter: 'due', mode: 'quiz', tagId: null, collectionId: null };
+        /** null = alle Boxen, 0–5 = nur diese Box (Versansicht) */
+        let verseBoxFilter = null;
+        /** Aktueller Dashboard-Modal-Scope: due | all | neu | review | mastered */
+        let boxVersesModalScope = null;
+        let practicePrefs = {
+            filter: 'due',
+            mode: 'quiz',
+            tagId: null,
+            collectionId: null,
+            /** Bei Alle/Tag/Kollektion: auch nicht-fällige Verse für Box/Fälligkeit werten */
+            scoreEarly: false
+        };
         let practiceSession = null;
         let verseFormTags = [];
         let verseFormClozeSpans = [];
@@ -1853,6 +2418,8 @@
         /** Zuletzt auto-gesetzte JW-URL – Änderungen nur überschreiben, wenn Feld leer oder unverändert */
         let verseFormAutoUrl = '';
         let managingCollectionId = null;
+        /** Cancel-Callback für offenes customConfirm; wird vom Backdrop-Klick aufgerufen */
+        let pendingConfirmCancel = null;
 
         const sunSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>';
         const moonSVG = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>';
@@ -2134,7 +2701,11 @@
         function setupModalListeners() {
             document.getElementById('confirmModal').addEventListener('click', (e) => {
                 if (e.target === document.getElementById('confirmModal')) {
-                    document.getElementById('confirmModal').style.display = 'none';
+                    if (pendingConfirmCancel) {
+                        pendingConfirmCancel();
+                    } else {
+                        document.getElementById('confirmModal').style.display = 'none';
+                    }
                 }
             });
             document.getElementById('serverConfigModal').addEventListener('click', (e) => {
@@ -2285,12 +2856,8 @@
         }
 
         function migrateSchema(fromVersion) {
-            if (fromVersion < 2) {
-                ensureVerseSchemaColumns();
-            }
             if (fromVersion < 3) {
                 ensureVerseSchemaColumns();
-                migrateVerseReferencesFromPlaintext();
             }
         }
 
@@ -2317,44 +2884,6 @@
             if (!cols.includes('verse_end')) {
                 db.run('ALTER TABLE verses ADD COLUMN verse_end INTEGER');
             }
-        }
-
-        /**
-         * @deprecated MIGRATION_CLEANUP: remove after all installs are on schema >= 3
-         * Best-effort parse of legacy free-text `reference` into structured fields.
-         */
-        function migrateVerseReferencesFromPlaintext() {
-            const rows = queryAll('SELECT id, reference, book_id FROM verses');
-            let migrated = 0;
-            for (const row of rows) {
-                if (row.book_id) continue;
-                const parsed = parseVerseReference(row.reference);
-                if (!parsed) continue;
-                const reference = formatVerseReference(
-                    parsed.book_id,
-                    parsed.chapter,
-                    parsed.verse_start,
-                    parsed.verse_end
-                );
-                runSql(
-                    `UPDATE verses
-                     SET book_id = ?, chapter = ?, verse_start = ?, verse_end = ?, reference = ?
-                     WHERE id = ?`,
-                    [
-                        parsed.book_id,
-                        parsed.chapter,
-                        parsed.verse_start,
-                        parsed.verse_end,
-                        reference,
-                        row.id
-                    ]
-                );
-                migrated += 1;
-            }
-            if (migrated > 0) {
-                console.info(`MIGRATION_CLEANUP: migrateVerseReferencesFromPlaintext migrated ${migrated} verse(s)`);
-            }
-            refreshStructuredReferenceStrings();
         }
 
         /** Aktualisiert berechnete `reference`-Strings (z.B. Komma → Doppelpunkt). */
@@ -2548,11 +3077,6 @@
             } finally {
                 event.target.value = '';
             }
-        }
-
-        async function importDatabase(event) {
-            // Rückwärtskompatibel; neuer Einstieg: handleImportFile
-            await handleImportFile(event);
         }
 
         async function importDatabaseFromFile(file) {
@@ -3226,7 +3750,7 @@
                     break;
                 }
                 case 'merge':
-                    await intelligentMerge();
+                    await autoResolveSync();
                     break;
             }
 
@@ -3244,12 +3768,12 @@
             }
         }
 
-        async function intelligentMerge() {
+        async function autoResolveSync() {
             const config = getServerConfig();
             if (!config) return;
 
             try {
-                showStatus('Merge wird vorbereitet...', 'info');
+                showStatus('Konflikt wird aufgelöst...', 'info');
                 const response = await fetch(config.url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -3274,8 +3798,8 @@
                     await downloadDatabaseFromServer(true);
                 }
             } catch (error) {
-                console.error('Merge fehlgeschlagen:', error);
-                showStatus('Merge fehlgeschlagen: ' + error.message, 'error');
+                console.error('Auflösung fehlgeschlagen:', error);
+                showStatus('Auflösung fehlgeschlagen: ' + error.message, 'error');
                 await showConflictResolution({ status: 'conflict' });
             }
         }
@@ -3586,6 +4110,7 @@
 
                 const complete = (result) => {
                     document.getElementById('confirmModal').style.display = 'none';
+                    pendingConfirmCancel = null;
                     resolve(result);
                 };
 
@@ -3609,6 +4134,7 @@
 
                     messageDiv.appendChild(buttonsContainer);
                     newCloseBtn.onclick = () => complete({ confirmed: false });
+                    pendingConfirmCancel = () => complete({ confirmed: false });
                 } else {
                     newConfirmBtn.style.display = 'inline-block';
                     newCancelBtn.style.display = 'inline-block';
@@ -3617,6 +4143,7 @@
                     newConfirmBtn.onclick = () => complete(true);
                     newCancelBtn.onclick = () => complete(false);
                     newCloseBtn.onclick = () => complete(false);
+                    pendingConfirmCancel = () => complete(false);
                 }
 
                 document.getElementById('confirmModal').style.display = 'flex';
@@ -4087,6 +4614,64 @@
             return html;
         }
 
+        /** Einheitliches Feedback-Panel für Stelle, Quiz und Lückentext. */
+        function renderPracticeFeedbackHtml({
+            correct,
+            title,
+            solution,
+            solutionLabel = 'Lösung',
+            given,
+            givenLabel = 'Deine Angabe',
+            extraHtml = '',
+            showNext = true
+        }) {
+            const statusClass = correct ? 'is-correct' : 'is-wrong';
+            const statusTitle = title ?? (correct ? 'Richtig!' : 'Leider falsch.');
+            const mark = correct ? '✓' : '✗';
+
+            let compareHtml = '';
+            const hasSolution = solution != null && String(solution).length > 0;
+            const hasGiven = given != null && String(given).length > 0;
+            if (hasSolution || hasGiven) {
+                const rows = [];
+                if (hasSolution) {
+                    rows.push(`
+                        <div class="practice-feedback-row is-solution">
+                            <span class="practice-feedback-label">${escapeHtml(solutionLabel)}</span>
+                            <span class="practice-feedback-value">${escapeHtml(String(solution))}</span>
+                        </div>
+                    `);
+                }
+                if (hasGiven) {
+                    const givenCls = correct ? 'is-match' : 'is-mismatch';
+                    rows.push(`
+                        <div class="practice-feedback-row is-given ${givenCls}">
+                            <span class="practice-feedback-label">${escapeHtml(givenLabel)}</span>
+                            <span class="practice-feedback-value">${escapeHtml(String(given))}</span>
+                        </div>
+                    `);
+                }
+                compareHtml = `<div class="practice-feedback-compare">${rows.join('')}</div>`;
+            }
+
+            return `
+                <div class="practice-feedback ${statusClass}">
+                    <p class="practice-feedback-status">
+                        <span class="practice-feedback-status-mark" aria-hidden="true">${mark}</span>
+                        <span>${escapeHtml(statusTitle)}</span>
+                    </p>
+                    ${compareHtml}
+                    ${extraHtml || ''}
+                    ${showNext ? '<button type="button" class="btn btn-primary" data-action="cloze-next">Weiter</button>' : ''}
+                </div>
+            `;
+        }
+
+        function practiceScoreNoteHtml(scored) {
+            if (scored !== false) return '';
+            return `<p class="list-item-meta" style="margin: 8px 0 0;">Auffrischung – Lernstand unverändert</p>`;
+        }
+
         /** User-Eingaben als farbige Blöcke, farblich an die Lücken im Text gekoppelt. */
         function renderClozeUserAnswersHtml(givenParts, blanks) {
             if (!blanks || !blanks.length) return '';
@@ -4170,6 +4755,156 @@
             return `<span class="${cls}" data-tooltip="${tip}">Box ${level}</span>`;
         }
 
+        function formatVerseCountLabel(count) {
+            const n = Number(count) || 0;
+            return n === 1 ? '1 Vers' : `${n} Verse`;
+        }
+
+        function getBoxCounts(verses = null) {
+            const pool = verses || getAllVerses();
+            const counts = [0, 0, 0, 0, 0, 0];
+            for (const v of pool) {
+                counts[normalizeBoxLevel(v.box_level)] += 1;
+            }
+            return counts;
+        }
+
+        function getDashboardScopeVerses(scope) {
+            const all = getAllVersesSorted();
+            switch (scope) {
+                case 'due':
+                    return all.filter(v => isVerseDue(v));
+                case 'neu':
+                    return all.filter(v => normalizeBoxLevel(v.box_level) === 0);
+                case 'review':
+                    return all.filter(v => {
+                        const box = normalizeBoxLevel(v.box_level);
+                        return box >= 1 && box <= 4;
+                    });
+                case 'mastered':
+                    return all.filter(v => normalizeBoxLevel(v.box_level) >= 5);
+                case 'all':
+                default:
+                    return all;
+            }
+        }
+
+        function getDashboardScopeMeta(scope) {
+            switch (scope) {
+                case 'due':
+                    return {
+                        title: 'Heute fällig',
+                        hint: 'Verse, deren Wiederholungsintervall abgelaufen ist.',
+                    };
+                case 'neu':
+                    return {
+                        title: 'Neu (Box 0)',
+                        hint: boxLevelTooltip(0),
+                    };
+                case 'review':
+                    return {
+                        title: 'In Wiederholung',
+                        hint: 'Verse in Box 1–4: schon geübt, aber noch nicht gemeistert.',
+                    };
+                case 'mastered':
+                    return {
+                        title: 'Gemeistert (Box 5)',
+                        hint: boxLevelTooltip(5),
+                    };
+                case 'all':
+                default:
+                    return {
+                        title: 'Verse gesamt',
+                        hint: 'Alle angelegten Verse, unabhängig vom Lernstand.',
+                    };
+            }
+        }
+
+        function renderBoxFilterBar(activeFilter = null, counts = null) {
+            const boxCounts = counts || getBoxCounts();
+            const allCount = boxCounts.reduce((sum, n) => sum + n, 0);
+            const buttons = [];
+            const allActive = activeFilter == null;
+            buttons.push(`
+                <button type="button"
+                    class="box-filter-btn${allActive ? ' active' : ''}"
+                    data-action="set-verse-box-filter"
+                    data-box=""
+                    aria-pressed="${allActive ? 'true' : 'false'}">
+                    Alle <span class="box-filter-count">(${allCount})</span>
+                </button>
+            `);
+
+            for (let level = 0; level <= 5; level++) {
+                const count = boxCounts[level];
+                const tip = escapeHtml(boxLevelTooltip(level));
+                const active = activeFilter === level;
+                buttons.push(`
+                    <button type="button"
+                        class="box-filter-btn${active ? ' active' : ''}"
+                        data-action="set-verse-box-filter"
+                        data-box="${level}"
+                        data-tooltip="${tip}"
+                        aria-pressed="${active ? 'true' : 'false'}">
+                        Box ${level} <span class="box-filter-count">(${count})</span>
+                    </button>
+                `);
+            }
+
+            return `<div class="box-filter-bar" role="group" aria-label="Nach Box filtern">${buttons.join('')}</div>`;
+        }
+
+        function openDashboardVersesModal(scope) {
+            const meta = getDashboardScopeMeta(scope);
+            boxVersesModalScope = scope;
+            const verses = getDashboardScopeVerses(scope);
+            const showBoxBadge = scope === 'due' || scope === 'all' || scope === 'review';
+
+            document.getElementById('boxVersesTitle').textContent = meta.title;
+            document.getElementById('boxVersesHint').textContent =
+                `${formatVerseCountLabel(verses.length)} · ${meta.hint}`;
+
+            const list = document.getElementById('boxVersesList');
+            if (!verses.length) {
+                list.innerHTML = '<div class="empty-state">Keine Verse in dieser Auswahl.</div>';
+            } else {
+                list.innerHTML = verses.map(v => {
+                    const due = isVerseDue(v);
+                    const refHtml = v.url
+                        ? `<a class="verse-ref-link" href="${escapeHtml(v.url)}" target="_blank" rel="noopener">${escapeHtml(v.reference)}</a>`
+                        : escapeHtml(v.reference);
+                    return `
+                        <div class="list-item">
+                            <div class="list-item-body">
+                                <div class="list-item-title">${refHtml}
+                                    ${due ? `<span class="badge due" data-tooltip="${escapeHtml('Wiederholungsintervall abgelaufen – bereit zum Üben.')}">fällig</span>` : ''}
+                                    ${showBoxBadge ? renderBoxBadge(v.box_level) : ''}
+                                </div>
+                                <div class="list-item-text">${escapeHtml(v.text)}</div>
+                            </div>
+                            <div class="list-item-actions">
+                                <button type="button" class="btn btn-outline btn-sm" data-action="open-verse-edit" data-id="${v.id}">Bearbeiten</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            document.getElementById('boxVersesModal').style.display = 'flex';
+        }
+
+        function closeBoxVersesModal() {
+            document.getElementById('boxVersesModal').style.display = 'none';
+            boxVersesModalScope = null;
+        }
+
+        function refreshBoxVersesModalIfOpen() {
+            if (boxVersesModalScope == null) return;
+            const modal = document.getElementById('boxVersesModal');
+            if (!modal || modal.style.display !== 'flex') return;
+            openDashboardVersesModal(boxVersesModalScope);
+        }
+
         function isVerseDue(verse, now = new Date()) {
             const level = Number(verse.box_level) || 0;
             if (!verse.last_reviewed_at) return true;
@@ -4181,30 +4916,48 @@
             return dueAt <= now;
         }
 
-        function applyReviewResult(verseId, mode, correct) {
+        /**
+         * Ob diese Antwort den Lernstand (Box, Fälligkeit, Zähler) verändert.
+         * Fällige Verse immer; nicht-fällige nur bei scoreEarly (Auffrischen sonst ohne Wertung).
+         */
+        function shouldScorePracticeResult(verse, session = practiceSession) {
+            if (!verse) return false;
+            if (!session || session.filter === 'due') return true;
+            if (session.scoreEarly) return true;
+            return isVerseDue(verse);
+        }
+
+        function applyReviewResult(verseId, mode, correct, { score = true } = {}) {
             const verse = queryOne('SELECT * FROM verses WHERE id = ?', [verseId]);
-            if (!verse) return;
+            if (!verse) return { scored: false, verse: null };
 
-            let box = Number(verse.box_level) || 0;
-            if (correct) box = Math.min(5, box + 1);
-            else box = 0;
-
-            const timesSeen = (Number(verse.times_seen) || 0) + 1;
-            const timesCorrect = (Number(verse.times_correct) || 0) + (correct ? 1 : 0);
             const now = new Date().toISOString();
-
-            runSql(`
-                UPDATE verses
-                SET box_level = ?, last_reviewed_at = ?, times_seen = ?, times_correct = ?
-                WHERE id = ?
-            `, [box, now, timesSeen, timesCorrect, verseId]);
 
             runSql(`
                 INSERT INTO practice_log (verse_id, mode, result, timestamp)
                 VALUES (?, ?, ?, ?)
             `, [verseId, mode, correct ? 'correct' : 'incorrect', now]);
 
+            if (score) {
+                let box = Number(verse.box_level) || 0;
+                if (correct) box = Math.min(5, box + 1);
+                else box = 0;
+
+                const timesSeen = (Number(verse.times_seen) || 0) + 1;
+                const timesCorrect = (Number(verse.times_correct) || 0) + (correct ? 1 : 0);
+
+                runSql(`
+                    UPDATE verses
+                    SET box_level = ?, last_reviewed_at = ?, times_seen = ?, times_correct = ?
+                    WHERE id = ?
+                `, [box, now, timesSeen, timesCorrect, verseId]);
+            }
+
             markDataChanged();
+            const updated = score
+                ? (queryOne('SELECT * FROM verses WHERE id = ?', [verseId]) || verse)
+                : verse;
+            return { scored: score, verse: updated };
         }
 
         function formatVerseProgressSummary(verse) {
@@ -4253,6 +5006,7 @@
             if (currentView === 'verses' || currentView === 'dashboard' || currentView === 'practice') {
                 renderCurrentView();
             }
+            refreshBoxVersesModalIfOpen();
         }
 
         async function resetAllLearningProgress() {
@@ -4366,6 +5120,130 @@
                 else review++;
             }
             return { total: verses.length, due: due.length, neu, review, mastered, dueList: due.slice(0, 12) };
+        }
+
+        function localDateKey(date = new Date()) {
+            const y = date.getFullYear();
+            const m = String(date.getMonth() + 1).padStart(2, '0');
+            const d = String(date.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+        }
+
+        /** Alte Logs nutzten „memory“ für den heutigen Modus „stelle“. */
+        function normalizePracticeMode(mode) {
+            const m = String(mode || 'quiz');
+            if (m === 'memory') return 'stelle';
+            return m;
+        }
+
+        function practiceModeLabel(mode) {
+            switch (normalizePracticeMode(mode)) {
+                case 'quiz': return 'Quiz';
+                case 'luckentext': return 'Lückentext';
+                case 'stelle': return 'Stelle';
+                case 'mix': return 'Mix';
+                default: return mode || 'Unbekannt';
+            }
+        }
+
+        function weekdayShortLabel(date) {
+            return ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'][date.getDay()];
+        }
+
+        function getLearningStats() {
+            const logs = queryAll(
+                'SELECT verse_id, mode, result, timestamp FROM practice_log ORDER BY timestamp ASC'
+            );
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            const todayKey = localDateKey(today);
+
+            const days = [];
+            for (let i = 13; i >= 0; i--) {
+                const d = new Date(today);
+                d.setDate(d.getDate() - i);
+                days.push({
+                    key: localDateKey(d),
+                    date: d,
+                    label: weekdayShortLabel(d),
+                    reviews: 0,
+                    correct: 0,
+                    isToday: i === 0,
+                });
+            }
+            const dayMap = new Map(days.map(d => [d.key, d]));
+
+            const activeDays = new Set();
+            let todayReviews = 0;
+            let todayCorrect = 0;
+            const modeMap = new Map();
+
+            for (const log of logs) {
+                const t = new Date(log.timestamp);
+                if (Number.isNaN(t.getTime())) continue;
+                const key = localDateKey(t);
+                activeDays.add(key);
+
+                const bucket = dayMap.get(key);
+                if (bucket) {
+                    bucket.reviews += 1;
+                    if (log.result === 'correct') bucket.correct += 1;
+                }
+
+                if (key === todayKey) {
+                    todayReviews += 1;
+                    if (log.result === 'correct') todayCorrect += 1;
+                }
+
+                const mode = normalizePracticeMode(log.mode);
+                let m = modeMap.get(mode);
+                if (!m) {
+                    m = { mode, n: 0, ok: 0 };
+                    modeMap.set(mode, m);
+                }
+                m.n += 1;
+                if (log.result === 'correct') m.ok += 1;
+            }
+
+            let streak = 0;
+            const cursor = new Date(today);
+            if (!activeDays.has(localDateKey(cursor))) {
+                cursor.setDate(cursor.getDate() - 1);
+            }
+            while (activeDays.has(localDateKey(cursor))) {
+                streak += 1;
+                cursor.setDate(cursor.getDate() - 1);
+            }
+
+            const weak = queryAll(`
+                SELECT id, reference, box_level, times_seen, times_correct,
+                       ROUND(100.0 * times_correct / times_seen) AS pct
+                FROM verses
+                WHERE times_seen >= 3
+                  AND times_correct < times_seen
+                ORDER BY (1.0 * times_correct / times_seen) ASC, times_seen DESC
+                LIMIT 5
+            `);
+
+            const practicedEnough = queryOne(`
+                SELECT COUNT(*) AS c FROM verses WHERE times_seen >= 3
+            `)?.c || 0;
+
+            const byMode = Array.from(modeMap.values())
+                .sort((a, b) => b.n - a.n);
+
+            return {
+                totalReviews: logs.length,
+                todayReviews,
+                todayPct: todayReviews > 0 ? Math.round((100 * todayCorrect) / todayReviews) : null,
+                streak,
+                days,
+                weak,
+                practicedEnough,
+                byMode,
+                boxCounts: getBoxCounts(),
+            };
         }
 
         function findOrCreateTagByName(name) {
@@ -4485,6 +5363,18 @@
                 });
             });
 
+            const appTitle = document.getElementById('appTitle');
+            if (appTitle) {
+                const goHome = () => switchView('dashboard');
+                appTitle.addEventListener('click', goHome);
+                appTitle.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        goHome();
+                    }
+                });
+            }
+
             const appMain = document.getElementById('appMain');
             appMain.addEventListener('click', handleAppMainClick);
             appMain.addEventListener('change', handleAppMainChange);
@@ -4526,48 +5416,29 @@
             tagInput.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    addTagToVerseForm(tagInput.value);
-                    tagInput.value = '';
+                    commitTagFromInput(tagInput);
+                } else if (e.key === 'Escape') {
                     hideTagSuggestions();
                 } else if (e.key === 'Backspace' && !tagInput.value && verseFormTags.length) {
                     verseFormTags.pop();
                     renderVerseTagChips();
                 }
             });
+            tagInput.addEventListener('focus', () => updateTagSuggestions(tagInput.value));
             tagInput.addEventListener('input', () => updateTagSuggestions(tagInput.value));
             tagInput.addEventListener('blur', () => setTimeout(hideTagSuggestions, 150));
             document.getElementById('verseTagChips').addEventListener('click', (e) => {
                 const chip = e.target.closest('[data-action="remove-form-tag"]');
-                if (!chip) return;
-                const name = chip.dataset.tag;
-                verseFormTags = verseFormTags.filter(t => t !== name);
-                renderVerseTagChips();
+                if (chip) {
+                    const name = chip.dataset.tag;
+                    verseFormTags = verseFormTags.filter(t => t !== name);
+                    renderVerseTagChips();
+                    return;
+                }
+                document.getElementById('verseTagInput').focus();
             });
 
-            const bookInput = document.getElementById('verseBookInput');
-            bookInput.addEventListener('input', () => {
-                document.getElementById('verseBookId').value = '';
-                updateBookSuggestions(bookInput.value);
-            });
-            bookInput.addEventListener('focus', () => updateBookSuggestions(bookInput.value));
-            bookInput.addEventListener('blur', () => {
-                setTimeout(() => {
-                    hideBookSuggestions();
-                    commitVerseBookInput();
-                }, 150);
-            });
-            bookInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const suggestions = getBookSuggestions(bookInput.value, UI_LANG, 1);
-                    if (suggestions.length) {
-                        selectVerseBook(suggestions[0].id, suggestions[0].name);
-                    } else {
-                        commitVerseBookInput();
-                    }
-                    document.getElementById('verseChapter').focus();
-                }
-            });
+            verseBookAutocomplete.wire();
 
             ['verseChapter', 'verseStart', 'verseEnd'].forEach((id) => {
                 document.getElementById(id).addEventListener('input', syncVerseFormJwpubUrl);
@@ -4616,12 +5487,30 @@
                 addVerseToManagedCollection(verseId);
                 e.target.value = '';
             });
+
+            document.getElementById('boxVersesModalClose').addEventListener('click', closeBoxVersesModal);
+            document.getElementById('boxVersesClose').addEventListener('click', closeBoxVersesModal);
+            document.getElementById('boxVersesModal').addEventListener('click', (e) => {
+                if (e.target.id === 'boxVersesModal') {
+                    closeBoxVersesModal();
+                    return;
+                }
+                const btn = e.target.closest('[data-action="open-verse-edit"]');
+                if (!btn) return;
+                const id = btn.dataset.id ? Number(btn.dataset.id) : null;
+                if (id) openVerseModal(id);
+            });
         }
 
         function switchView(view, opts = {}) {
             if (!VIEWS.includes(view)) view = 'dashboard';
             currentView = view;
             if (opts.practiceFilter) practicePrefs.filter = opts.practiceFilter;
+            if (opts.verseBoxFilter !== undefined) {
+                verseBoxFilter = opts.verseBoxFilter == null || opts.verseBoxFilter === ''
+                    ? null
+                    : normalizeBoxLevel(opts.verseBoxFilter);
+            }
             if (view !== 'practice') practiceSession = null;
             document.querySelectorAll('.burger-content .nav-link').forEach(link => {
                 link.classList.toggle('active', link.dataset.view === view);
@@ -4660,11 +5549,14 @@
             else if (action === 'delete-collection') deleteCollection(id);
             else if (action === 'manage-collection-verses') openCollectionVersesModal(id);
             else if (action === 'export-collection') openCollectionExportModal(id);
-            else if (action === 'collection-move-up') moveCollectionVerse(id, -1);
-            else if (action === 'collection-move-down') moveCollectionVerse(id, 1);
-            else if (action === 'collection-remove-verse') removeVerseFromManagedCollection(id);
             else if (action === 'goto-practice-due') switchView('practice', { practiceFilter: 'due' });
-            else if (action === 'set-practice-mode') {
+            else if (action === 'set-verse-box-filter') {
+                const raw = btn.dataset.box;
+                verseBoxFilter = raw === '' || raw == null ? null : normalizeBoxLevel(raw);
+                renderVersesView();
+            } else if (action === 'open-dashboard-verses') {
+                openDashboardVersesModal(btn.dataset.scope);
+            } else if (action === 'set-practice-mode') {
                 practicePrefs.mode = btn.dataset.mode;
                 renderPracticeView();
             } else if (action === 'set-practice-filter') {
@@ -4676,13 +5568,6 @@
                 renderPracticeView();
             } else if (action === 'quiz-answer') handleQuizAnswer(Number(btn.dataset.verseId));
             else if (action === 'cloze-next') advancePracticeAfterFeedback();
-            else if (action === 'memory-flip') handleMemoryFlip(Number(btn.dataset.cardIndex));
-            else if (action === 'memory-again') startPracticeSession();
-            else if (action === 'remove-form-tag') {
-                const name = btn.dataset.tag;
-                verseFormTags = verseFormTags.filter(t => t !== name);
-                renderVerseTagChips();
-            }
         }
 
         function handleAppMainChange(e) {
@@ -4691,6 +5576,8 @@
                 practicePrefs.tagId = el.value ? Number(el.value) : null;
             } else if (el.id === 'practiceCollectionSelect') {
                 practicePrefs.collectionId = el.value ? Number(el.value) : null;
+            } else if (el.id === 'practiceScoreEarly') {
+                practicePrefs.scoreEarly = !!el.checked;
             }
         }
 
@@ -4698,6 +5585,9 @@
             if (e.target.id === 'clozeForm') {
                 e.preventDefault();
                 handleClozeSubmit();
+            } else if (e.target.id === 'stelleForm') {
+                e.preventDefault();
+                handleStelleSubmit();
             }
         }
 
@@ -4721,20 +5611,169 @@
                     </p>
                     <p>
                         <strong>Heute fällig</strong> sind alle Verse, deren Pause abgelaufen ist
-                        (Box&nbsp;0 immer). Im Lückentext werden mit steigender Box mehr Wörter ausgeblendet.
+                        (Box&nbsp;0 immer). Nur fällige Wiederholungen zählen für den Lernstand –
+                        Auffrischen unter „Alle Verse“ / Tag / Kollektion ändert Box und Fälligkeit
+                        nicht, außer du aktivierst dort die Wertung. Im Lückentext werden mit
+                        steigender Box mehr Wörter ausgeblendet.
                     </p>
                     <div class="learn-box-chips" aria-label="Wiederholungsintervalle der Boxen">${boxChips}</div>
                 </div>
             `;
         }
 
+        function buildLearningStatsHtml() {
+            const ls = getLearningStats();
+            const maxReviews = Math.max(1, ...ls.days.map(d => d.reviews));
+            const boxTotal = Math.max(1, ls.boxCounts.reduce((a, b) => a + b, 0));
+
+            const todayValue = ls.todayReviews > 0
+                ? String(ls.todayReviews)
+                : '0';
+            const todaySub = ls.todayPct != null
+                ? `${ls.todayPct}% richtig`
+                : 'Noch keine Übungen heute';
+
+            const streakSub = ls.streak === 1
+                ? 'Tag in Folge'
+                : ls.streak > 1
+                    ? 'Tage in Folge'
+                    : 'Heute noch nicht geübt';
+
+            const trendBars = ls.days.map(d => {
+                const h = d.reviews > 0
+                    ? Math.max(8, Math.round((d.reviews / maxReviews) * 72))
+                    : 3;
+                const tip = d.reviews > 0
+                    ? `${d.key}: ${d.reviews} Übung${d.reviews === 1 ? '' : 'en'}, ${Math.round((100 * d.correct) / d.reviews)}% richtig`
+                    : `${d.key}: keine Übungen`;
+                const cls = [
+                    'stats-trend-bar',
+                    d.reviews > 0 ? 'has-activity' : '',
+                    d.isToday ? 'is-today' : '',
+                ].filter(Boolean).join(' ');
+                return `
+                    <div class="stats-trend-bar-wrap" data-tooltip="${escapeHtml(tip)}">
+                        <div class="${cls}" style="height:${h}px"></div>
+                        <span class="stats-trend-label">${escapeHtml(d.label)}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const boxRows = ls.boxCounts.map((count, level) => {
+                const pct = Math.round((100 * count) / boxTotal);
+                return `
+                    <div class="stats-box-row">
+                        <span class="stats-box-label">Box ${level}</span>
+                        <div class="stats-box-track">
+                            <div class="stats-box-fill level-${level}" style="width:${pct}%"></div>
+                        </div>
+                        <span class="stats-box-count">${count}</span>
+                    </div>
+                `;
+            }).join('');
+
+            const modeChips = ls.byMode.length
+                ? ls.byMode.map(m => {
+                    const pct = m.n > 0 ? Math.round((100 * m.ok) / m.n) : 0;
+                    return `
+                        <div class="stats-mode-chip">
+                            <span>${escapeHtml(practiceModeLabel(m.mode))}</span>
+                            <strong>${pct}%</strong>
+                            <span>${m.n}×</span>
+                        </div>
+                    `;
+                }).join('')
+                : '<p class="stats-empty">Noch keine Modus-Daten.</p>';
+
+            const weakItems = ls.weak.length
+                ? ls.weak.map(v => {
+                    const pct = Number(v.pct) || 0;
+                    const pctCls = pct >= 70 ? 'stats-weak-pct is-ok' : 'stats-weak-pct';
+                    return `
+                        <li>
+                            <button type="button" class="stats-weak-btn" data-action="open-verse-edit" data-id="${v.id}">
+                                <span class="stats-weak-ref">${escapeHtml(v.reference)}</span>
+                                <span class="stats-weak-meta">
+                                    ${renderBoxBadge(v.box_level)}
+                                    <span>${v.times_seen}×</span>
+                                    <span class="${pctCls}">${pct}%</span>
+                                </span>
+                            </button>
+                        </li>
+                    `;
+                }).join('')
+                : `<li><p class="stats-empty">${
+                    ls.practicedEnough > 0
+                        ? 'Keine schwachen Verse (alle 100 %).'
+                        : 'Noch keine Verse mit mindestens 3 Übungen.'
+                }</p></li>`;
+
+            const meta = ls.totalReviews > 0
+                ? `${ls.totalReviews} Übung${ls.totalReviews === 1 ? '' : 'en'} insgesamt`
+                : 'Noch keine Übungen erfasst';
+
+            const activityBlock = ls.totalReviews > 0
+                ? `
+                    <div class="stats-kpi-row">
+                        <div class="stats-kpi">
+                            <div class="stats-kpi-label">Heute geübt</div>
+                            <div class="stats-kpi-value">${todayValue}</div>
+                            <div class="stats-kpi-sub">${escapeHtml(todaySub)}</div>
+                        </div>
+                        <div class="stats-kpi">
+                            <div class="stats-kpi-label">Trefferquote heute</div>
+                            <div class="stats-kpi-value">${ls.todayPct != null ? ls.todayPct + '%' : '—'}</div>
+                            <div class="stats-kpi-sub">${ls.todayReviews > 0 ? escapeHtml(`${ls.todayReviews} Wiederholung${ls.todayReviews === 1 ? '' : 'en'}`) : '—'}</div>
+                        </div>
+                        <div class="stats-kpi">
+                            <div class="stats-kpi-label">Serie</div>
+                            <div class="stats-kpi-value">${ls.streak}</div>
+                            <div class="stats-kpi-sub">${escapeHtml(streakSub)}</div>
+                        </div>
+                    </div>
+                    <div class="stats-section">
+                        <div class="stats-section-title">Letzte 14 Tage</div>
+                        <div class="stats-trend" aria-label="Übungen der letzten 14 Tage">${trendBars}</div>
+                    </div>
+                    <div class="stats-section">
+                        <div class="stats-section-title">Nach Übungsmodus</div>
+                        <div class="stats-mode-row">${modeChips}</div>
+                    </div>
+                `
+                : `
+                    <p class="stats-empty" style="margin-bottom:16px;">
+                        Noch keine Übungen – starte eine Session, dann erscheinen hier Aktivität, Trefferquote und Trends.
+                    </p>
+                `;
+
+            return `
+                <div class="panel stats-panel">
+                    <div class="stats-panel-header">
+                        <h3>Lernstatistik</h3>
+                        <span class="stats-panel-meta">${escapeHtml(meta)}</span>
+                    </div>
+                    ${activityBlock}
+                    <div class="stats-grid-2">
+                        <div class="stats-section" style="margin-top:0;">
+                            <div class="stats-section-title">Box-Verteilung</div>
+                            <div class="stats-box-bars">${boxRows}</div>
+                        </div>
+                        <div class="stats-section" style="margin-top:0;">
+                            <div class="stats-section-title">Schwächste Verse</div>
+                            <ul class="stats-weak-list">${weakItems}</ul>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         function renderDashboardView() {
             const stats = getDashboardStats();
-            const dueTip = escapeHtml('Verse, deren Wiederholungsintervall abgelaufen ist – bereit zum Üben.');
-            const totalTip = escapeHtml('Alle angelegten Verse, unabhängig vom Lernstand.');
-            const neuTip = escapeHtml(boxLevelTooltip(0));
-            const reviewTip = escapeHtml('Verse in Box 1–4: schon geübt, aber noch nicht gemeistert.');
-            const masteredTip = escapeHtml(boxLevelTooltip(5));
+            const dueTip = escapeHtml('Verse, deren Wiederholungsintervall abgelaufen ist – bereit zum Üben. Klicken zum Anzeigen.');
+            const totalTip = escapeHtml('Alle angelegten Verse, unabhängig vom Lernstand. Klicken zum Anzeigen.');
+            const neuTip = escapeHtml(`${boxLevelTooltip(0)} Klicken zum Anzeigen.`);
+            const reviewTip = escapeHtml('Verse in Box 1–4: schon geübt, aber noch nicht gemeistert. Klicken zum Anzeigen.');
+            const masteredTip = escapeHtml(`${boxLevelTooltip(5)} Klicken zum Anzeigen.`);
 
             const dueItems = stats.dueList.map(v => `
                 <li>
@@ -4752,40 +5791,46 @@
                     </div>
                 </div>
                 <div class="card-grid">
-                    <div class="stat-card" data-tooltip="${dueTip}">
+                    <button type="button" class="stat-card is-clickable" data-action="open-dashboard-verses" data-scope="due" data-tooltip="${dueTip}" ${stats.due === 0 ? 'disabled' : ''}>
                         <div class="stat-label">Heute fällig</div>
                         <div class="stat-value">${stats.due}</div>
-                    </div>
-                    <div class="stat-card" data-tooltip="${totalTip}">
+                    </button>
+                    <button type="button" class="stat-card is-clickable" data-action="open-dashboard-verses" data-scope="all" data-tooltip="${totalTip}" ${stats.total === 0 ? 'disabled' : ''}>
                         <div class="stat-label">Verse gesamt</div>
                         <div class="stat-value">${stats.total}</div>
-                    </div>
-                    <div class="stat-card" data-tooltip="${neuTip}">
+                    </button>
+                    <button type="button" class="stat-card is-clickable" data-action="open-dashboard-verses" data-scope="neu" data-tooltip="${neuTip}" ${stats.neu === 0 ? 'disabled' : ''}>
                         <div class="stat-label">Neu (Box 0)</div>
                         <div class="stat-value">${stats.neu}</div>
-                    </div>
-                    <div class="stat-card" data-tooltip="${reviewTip}">
+                    </button>
+                    <button type="button" class="stat-card is-clickable" data-action="open-dashboard-verses" data-scope="review" data-tooltip="${reviewTip}" ${stats.review === 0 ? 'disabled' : ''}>
                         <div class="stat-label">In Wiederholung</div>
                         <div class="stat-value">${stats.review}</div>
-                    </div>
-                    <div class="stat-card" data-tooltip="${masteredTip}">
+                    </button>
+                    <button type="button" class="stat-card is-clickable" data-action="open-dashboard-verses" data-scope="mastered" data-tooltip="${masteredTip}" ${stats.mastered === 0 ? 'disabled' : ''}>
                         <div class="stat-label">Gemeistert (Box 5)</div>
                         <div class="stat-value">${stats.mastered}</div>
-                    </div>
+                    </button>
                 </div>
-                ${buildLearningExplainHtml()}
+                ${buildLearningStatsHtml()}
                 <div class="panel">
                     <h3>Fällige Verse</h3>
                     <ul class="due-list">${dueItems}</ul>
                 </div>
+                ${buildLearningExplainHtml()}
             `;
         }
 
         // ---------- Verse CRUD ----------
 
         function renderVersesView() {
-            const verses = getAllVersesSorted();
-            const items = verses.map(v => {
+            const allVerses = getAllVersesSorted();
+            const counts = getBoxCounts(allVerses);
+            const filtered = verseBoxFilter == null
+                ? allVerses
+                : allVerses.filter(v => normalizeBoxLevel(v.box_level) === verseBoxFilter);
+
+            const items = filtered.map(v => {
                 const tags = getTagsForVerse(v.id).map(t => `<span class="tag-chip">${escapeHtml(t.name)}</span>`).join('');
                 const due = isVerseDue(v);
                 const refHtml = v.url
@@ -4808,7 +5853,11 @@
                         </div>
                     </div>
                 `;
-            }).join('') || '<div class="empty-state">Noch keine Verse. Leg den ersten an.</div>';
+            }).join('') || (
+                allVerses.length
+                    ? `<div class="empty-state">Keine Verse in Box ${verseBoxFilter}.</div>`
+                    : '<div class="empty-state">Noch keine Verse. Leg den ersten an.</div>'
+            );
 
             document.getElementById('appMain').innerHTML = `
                 <div class="view-header">
@@ -4817,6 +5866,7 @@
                         <button type="button" class="btn btn-primary" data-action="open-verse-new">Neuer Vers</button>
                     </div>
                 </div>
+                ${renderBoxFilterBar(verseBoxFilter, counts)}
                 <div class="panel">${items}</div>
             `;
         }
@@ -4830,7 +5880,7 @@
             verseFormClozeSpans = [];
             verseClozeAnchor = null;
             verseFormAutoUrl = '';
-            hideBookSuggestions();
+            verseBookAutocomplete.hideSuggestions();
             const warn = document.getElementById('verseRefWarn');
             warn.hidden = true;
 
@@ -4972,54 +6022,8 @@
         function closeVerseModal() {
             document.getElementById('verseModal').style.display = 'none';
             hideTagSuggestions();
-            hideBookSuggestions();
+            verseBookAutocomplete.hideSuggestions();
             verseClozeAnchor = null;
-        }
-
-        function updateBookSuggestions(query) {
-            const box = document.getElementById('verseBookSuggestions');
-            const suggestions = getBookSuggestions(query);
-            if (!suggestions.length) {
-                box.classList.remove('visible');
-                box.innerHTML = '';
-                return;
-            }
-            box.innerHTML = suggestions.map(s =>
-                `<div data-book-id="${escapeHtml(s.id)}" data-book-name="${escapeHtml(s.name)}">${escapeHtml(s.name)}</div>`
-            ).join('');
-            box.classList.add('visible');
-            box.querySelectorAll('[data-book-id]').forEach(el => {
-                el.addEventListener('mousedown', (e) => {
-                    e.preventDefault();
-                    selectVerseBook(el.dataset.bookId, el.dataset.bookName);
-                });
-            });
-        }
-
-        function selectVerseBook(bookId, bookName) {
-            document.getElementById('verseBookId').value = bookId;
-            document.getElementById('verseBookInput').value = bookName || getBookName(bookId);
-            document.getElementById('verseRefWarn').hidden = true;
-            hideBookSuggestions();
-            syncVerseFormJwpubUrl();
-        }
-
-        function hideBookSuggestions() {
-            const box = document.getElementById('verseBookSuggestions');
-            if (!box) return;
-            box.classList.remove('visible');
-            box.innerHTML = '';
-        }
-
-        function commitVerseBookInput() {
-            const input = document.getElementById('verseBookInput');
-            const resolved = resolveBookIdFromInput(input.value);
-            if (resolved) {
-                selectVerseBook(resolved, getBookName(resolved));
-                return resolved;
-            }
-            document.getElementById('verseBookId').value = '';
-            return null;
         }
 
         function renderVerseTagChips() {
@@ -5044,47 +6048,84 @@
             renderVerseTagChips();
         }
 
-        function updateTagSuggestions(query) {
-            const box = document.getElementById('verseTagSuggestions');
+        function getTagComboboxOptions(query) {
             const q = String(query || '').trim().toLowerCase();
-            if (!q) {
-                box.classList.remove('visible');
-                box.innerHTML = '';
+            return getAllTags().filter(t =>
+                (!q || t.name.toLowerCase().includes(q)) &&
+                !verseFormTags.some(x => x.toLowerCase() === t.name.toLowerCase())
+            );
+        }
+
+        function commitTagFromInput(input) {
+            const raw = String(input.value || '').trim();
+            if (!raw) {
+                hideTagSuggestions();
                 return;
             }
-            const tags = getAllTags().filter(t =>
-                t.name.toLowerCase().includes(q) &&
-                !verseFormTags.some(x => x.toLowerCase() === t.name.toLowerCase())
-            ).slice(0, 8);
+            const options = getTagComboboxOptions(raw);
+            const exact = options.find(t => t.name.toLowerCase() === raw.toLowerCase())
+                || getAllTags().find(t =>
+                    t.name.toLowerCase() === raw.toLowerCase() &&
+                    !verseFormTags.some(x => x.toLowerCase() === t.name.toLowerCase())
+                );
+            if (exact) {
+                addTagToVerseForm(exact.name);
+            } else if (options.length) {
+                // Bestehenden Treffer bevorzugen, statt Synonyme anzulegen
+                addTagToVerseForm(options[0].name);
+            } else {
+                addTagToVerseForm(raw);
+            }
+            input.value = '';
+            hideTagSuggestions();
+            if (document.activeElement === input) updateTagSuggestions('');
+        }
 
+        function updateTagSuggestions(query) {
+            const box = document.getElementById('verseTagSuggestions');
+            const input = document.getElementById('verseTagInput');
+            if (!box || !input) return;
+
+            const tags = getTagComboboxOptions(query);
             if (!tags.length) {
                 box.classList.remove('visible');
                 box.innerHTML = '';
+                input.setAttribute('aria-expanded', 'false');
                 return;
             }
 
-            box.innerHTML = tags.map(t => `<div data-suggest="${escapeHtml(t.name)}">${escapeHtml(t.name)}</div>`).join('');
+            const q = String(query || '').trim().toLowerCase();
+            box.innerHTML = tags.map(t => {
+                const active = q && t.name.toLowerCase() === q ? ' style="background:var(--hover-bg)"' : '';
+                return `<div data-suggest="${escapeHtml(t.name)}"${active}>${escapeHtml(t.name)}</div>`;
+            }).join('');
             box.classList.add('visible');
+            input.setAttribute('aria-expanded', 'true');
             box.querySelectorAll('[data-suggest]').forEach(el => {
                 el.addEventListener('mousedown', (e) => {
                     e.preventDefault();
                     addTagToVerseForm(el.dataset.suggest);
-                    document.getElementById('verseTagInput').value = '';
+                    input.value = '';
                     hideTagSuggestions();
+                    input.focus();
+                    updateTagSuggestions('');
                 });
             });
         }
 
         function hideTagSuggestions() {
             const box = document.getElementById('verseTagSuggestions');
+            const input = document.getElementById('verseTagInput');
+            if (!box) return;
             box.classList.remove('visible');
             box.innerHTML = '';
+            if (input) input.setAttribute('aria-expanded', 'false');
         }
 
         function saveVerseForm(e) {
             e.preventDefault();
             const id = document.getElementById('verseId').value;
-            let bookId = document.getElementById('verseBookId').value || commitVerseBookInput();
+            let bookId = document.getElementById('verseBookId').value || verseBookAutocomplete.commitInput();
             if (!bookId || !getBookById(bookId)) {
                 showStatus('Bitte ein gültiges Bibelbuch wählen', 'error');
                 document.getElementById('verseBookInput').focus();
@@ -5110,7 +6151,7 @@
             const reference = formatVerseReference(bookId, chapter, verseStart, verseEnd);
 
             const tagInputVal = document.getElementById('verseTagInput').value.trim();
-            if (tagInputVal) addTagToVerseForm(tagInputVal);
+            if (tagInputVal) commitTagFromInput(document.getElementById('verseTagInput'));
 
             const collectionIds = [...document.querySelectorAll('input[name="verseCollection"]:checked')]
                 .map(el => Number(el.value));
@@ -5158,6 +6199,7 @@
             showStatus(id ? 'Vers aktualisiert' : 'Vers angelegt', 'success');
             if (currentView === 'verses' || currentView === 'dashboard') renderCurrentView();
             else switchView('verses');
+            refreshBoxVersesModalIfOpen();
         }
 
         async function deleteVerse(id) {
@@ -5170,9 +6212,8 @@
             markDataChanged();
             showStatus('Vers gelöscht', 'success');
             renderCurrentView();
+            refreshBoxVersesModalIfOpen();
         }
-
-        // ---------- Tags ----------
 
         function renderTagsView() {
             const tags = getAllTags();
@@ -5424,11 +6465,44 @@
 
         // ---------- Practice ----------
 
+        const PRACTICE_ITEM_MODES = ['quiz', 'luckentext', 'stelle'];
+
+        function pickMixItemModes(count) {
+            const modes = [];
+            let prev = null;
+            for (let i = 0; i < count; i++) {
+                let choices = PRACTICE_ITEM_MODES.filter(m => m !== prev);
+                if (!choices.length) choices = PRACTICE_ITEM_MODES.slice();
+                const pick = choices[Math.floor(Math.random() * choices.length)];
+                modes.push(pick);
+                prev = pick;
+            }
+            return modes;
+        }
+
+        /** Aktueller Übungsstil des Verses (bei Mix: Eintrag aus itemModes). */
+        function getActivePracticeMode() {
+            const s = practiceSession;
+            if (!s) return null;
+            if (s.mode === 'mix' && Array.isArray(s.itemModes)) {
+                return s.itemModes[s.index] || 'quiz';
+            }
+            return s.mode;
+        }
+
+        function formatPracticeProgress(verse, progress) {
+            const s = practiceSession;
+            const mixLabel = s && s.mode === 'mix' ? ' · Mix' : '';
+            return `${progress}${mixLabel} · ${renderBoxBadge(verse.box_level)}`;
+        }
+
         function renderPracticeView() {
             if (practiceSession) {
                 renderActivePractice();
                 return;
             }
+
+            if (practicePrefs.mode === 'memory') practicePrefs.mode = 'stelle';
 
             const tags = getAllTags();
             const collections = getAllCollections();
@@ -5462,12 +6536,23 @@
                                 ${collections.map(c => `<option value="${c.id}" ${practicePrefs.collectionId === c.id ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('')}
                             </select>
                         </div>` : ''}
+                    ${filter !== 'due' ? `
+                        <div class="form-group checkbox-list" style="max-height: none; overflow: visible; margin-top: 12px;">
+                            <label>
+                                <input type="checkbox" id="practiceScoreEarly" ${practicePrefs.scoreEarly ? 'checked' : ''}>
+                                Auch nicht-fällige Verse werten
+                            </label>
+                            <p class="list-item-meta" style="margin: 4px 0 0;">
+                                Standard: Auffrischen ohne Box-Aufstieg. Fällige Verse in der Sitzung zählen weiterhin.
+                            </p>
+                        </div>` : ''}
 
                     <h3>Modus</h3>
                     <div class="mode-options">
                         <button type="button" class="mode-btn ${practicePrefs.mode === 'quiz' ? 'active' : ''}" data-action="set-practice-mode" data-mode="quiz">Quiz</button>
                         <button type="button" class="mode-btn ${practicePrefs.mode === 'luckentext' ? 'active' : ''}" data-action="set-practice-mode" data-mode="luckentext">Lückentext</button>
-                        <button type="button" class="mode-btn ${practicePrefs.mode === 'memory' ? 'active' : ''}" data-action="set-practice-mode" data-mode="memory">Memory</button>
+                        <button type="button" class="mode-btn ${practicePrefs.mode === 'stelle' ? 'active' : ''}" data-action="set-practice-mode" data-mode="stelle">Stelle</button>
+                        <button type="button" class="mode-btn ${practicePrefs.mode === 'mix' ? 'active' : ''}" data-action="set-practice-mode" data-mode="mix">Mix</button>
                     </div>
 
                     <button type="button" class="btn btn-primary" data-action="start-practice">Sitzung starten</button>
@@ -5491,54 +6576,32 @@
                 return;
             }
 
+            if (practicePrefs.mode === 'memory') practicePrefs.mode = 'stelle';
+
             const mode = practicePrefs.mode;
-            if (mode === 'memory') {
-                const pairCount = Math.min(8, Math.max(2, Math.min(pool.length, 8)));
-                // Prefer due verses when available
-                const due = pool.filter(v => isVerseDue(v));
-                let selected = shuffle(due).slice(0, pairCount);
-                if (selected.length < pairCount) {
-                    const rest = shuffle(pool.filter(v => !selected.some(s => s.id === v.id)));
-                    selected = selected.concat(rest.slice(0, pairCount - selected.length));
-                }
-                if (selected.length < 2) {
-                    showStatus('Für Memory werden mindestens 2 Verse benötigt', 'warning');
-                    return;
-                }
-                const cards = [];
-                selected.forEach(v => {
-                    cards.push({ pairId: v.id, kind: 'ref', label: v.reference, verseId: v.id });
-                    cards.push({ pairId: v.id, kind: 'text', label: v.text, verseId: v.id });
-                });
-                practiceSession = {
-                    mode: 'memory',
-                    verses: selected,
-                    cards: shuffle(cards),
-                    flipped: [],
-                    matched: new Set(),
-                    lock: false,
-                    finished: false
-                };
-            } else {
-                const dueFirst = [...pool.filter(v => isVerseDue(v)), ...pool.filter(v => !isVerseDue(v))];
-                // unique by id preserving order
-                const seen = new Set();
-                const queue = [];
-                for (const v of dueFirst) {
-                    if (seen.has(v.id)) continue;
-                    seen.add(v.id);
-                    queue.push(v);
-                }
-                practiceSession = {
-                    mode,
-                    queue: shuffle(queue),
-                    index: 0,
-                    feedback: null,
-                    cloze: null
-                };
-                if (mode === 'luckentext') {
-                    prepareClozeForCurrent();
-                }
+            const dueFirst = [...pool.filter(v => isVerseDue(v)), ...pool.filter(v => !isVerseDue(v))];
+            // unique by id preserving order
+            const seen = new Set();
+            const queue = [];
+            for (const v of dueFirst) {
+                if (seen.has(v.id)) continue;
+                seen.add(v.id);
+                queue.push(v);
+            }
+            const shuffled = shuffle(queue);
+            practiceSession = {
+                mode,
+                filter: practicePrefs.filter,
+                scoreEarly: practicePrefs.filter === 'due' ? false : !!practicePrefs.scoreEarly,
+                queue: shuffled,
+                index: 0,
+                feedback: null,
+                cloze: null,
+                currentOptions: null,
+                itemModes: mode === 'mix' ? pickMixItemModes(shuffled.length) : null
+            };
+            if (getActivePracticeMode() === 'luckentext') {
+                prepareClozeForCurrent();
             }
 
             renderActivePractice();
@@ -5547,11 +6610,6 @@
         function renderActivePractice() {
             const s = practiceSession;
             if (!s) return;
-
-            if (s.mode === 'memory') {
-                renderMemoryPractice();
-                return;
-            }
 
             if (s.index >= s.queue.length) {
                 document.getElementById('appMain').innerHTML = `
@@ -5569,24 +6627,27 @@
 
             const verse = s.queue[s.index];
             const progress = `Vers ${s.index + 1} von ${s.queue.length}`;
+            const itemMode = getActivePracticeMode();
 
-            if (s.mode === 'quiz') {
-                const distractors = pickDistractors(verse, 3);
-                if (distractors.length < 3) {
-                    // still proceed with fewer options; tip once per session start is enough via status if zero pool
+            if (itemMode === 'quiz') {
+                let options;
+                if (s.currentOptions && s.currentOptions.length) {
+                    const byId = new Map(getAllVerses().map(v => [v.id, v]));
+                    byId.set(verse.id, verse);
+                    options = s.currentOptions.map(id => byId.get(id)).filter(Boolean);
+                } else {
+                    const distractors = pickDistractors(verse, 3);
+                    options = shuffle([verse, ...distractors]);
+                    s.currentOptions = options.map(o => o.id);
                 }
-                const options = shuffle([verse, ...distractors]);
-                s.currentOptions = options.map(o => o.id);
 
                 let feedbackHtml = '';
                 if (s.feedback) {
-                    feedbackHtml = `
-                        <div class="panel" style="margin-top:16px;">
-                            <p>${s.feedback.correct ? 'Richtig!' : 'Leider falsch.'}</p>
-                            <p class="list-item-meta">Lösung: ${escapeHtml(verse.text)}</p>
-                            <button type="button" class="btn btn-primary" data-action="cloze-next">Weiter</button>
-                        </div>
-                    `;
+                    feedbackHtml = renderPracticeFeedbackHtml({
+                        correct: s.feedback.correct,
+                        title: s.feedback.correct ? 'Richtig!' : 'Leider falsch.',
+                        extraHtml: practiceScoreNoteHtml(s.feedback.scored)
+                    });
                 }
 
                 document.getElementById('appMain').innerHTML = `
@@ -5596,7 +6657,7 @@
                             <button type="button" class="btn btn-outline btn-sm" data-action="abort-practice">Abbrechen</button>
                         </div>
                     </div>
-                    <div class="practice-progress">${progress} · ${renderBoxBadge(verse.box_level)}</div>
+                    <div class="practice-progress">${formatPracticeProgress(verse, progress)}</div>
                     <div class="panel">
                         <h3>${escapeHtml(verse.reference)}</h3>
                         <p class="list-item-meta">Welche Textstelle gehört dazu?</p>
@@ -5616,6 +6677,11 @@
                 return;
             }
 
+            if (itemMode === 'stelle') {
+                renderStellePractice(verse, progress);
+                return;
+            }
+
             // Lückentext
             if (!s.cloze) prepareClozeForCurrent();
             const cloze = s.cloze;
@@ -5629,9 +6695,11 @@
                 );
                 body = `
                     <div class="cloze-text">${solutionHtml}</div>
-                    <p>${s.feedback.correct ? 'Richtig!' : 'Noch nicht ganz.'}</p>
-                    ${userAnswersHtml}
-                    <button type="button" class="btn btn-primary" data-action="cloze-next">Weiter</button>
+                    ${renderPracticeFeedbackHtml({
+                        correct: s.feedback.correct,
+                        title: s.feedback.correct ? 'Richtig!' : 'Noch nicht ganz.',
+                        extraHtml: `${userAnswersHtml}${practiceScoreNoteHtml(s.feedback.scored)}`
+                    })}
                 `;
             } else {
                 body = `
@@ -5650,7 +6718,7 @@
                         <button type="button" class="btn btn-outline btn-sm" data-action="abort-practice">Abbrechen</button>
                     </div>
                 </div>
-                <div class="practice-progress">${progress} · ${renderBoxBadge(verse.box_level)}</div>
+                <div class="practice-progress">${formatPracticeProgress(verse, progress)}</div>
                 <div class="panel">
                     <h3>${escapeHtml(verse.reference)}</h3>
                     ${body}
@@ -5672,6 +6740,107 @@
             }
         }
 
+        function renderStellePractice(verse, progress) {
+            const s = practiceSession;
+            let body;
+            if (s.feedback) {
+                body = `
+                    <p class="stelle-prompt-text">${escapeHtml(verse.text)}</p>
+                    ${renderPracticeFeedbackHtml({
+                        correct: s.feedback.correct,
+                        solution: verse.reference,
+                        given: s.feedback.givenRef || '',
+                        extraHtml: practiceScoreNoteHtml(s.feedback.scored)
+                    })}
+                `;
+            } else {
+                body = `
+                    <p class="stelle-prompt-text">${escapeHtml(verse.text)}</p>
+                    <p class="list-item-meta" style="margin-bottom:12px;">Zu welchem Bibelvers gehört dieser Text?</p>
+                    <form id="stelleForm">
+                        <input type="hidden" id="stelleBookId" value="">
+                        <div class="form-group">
+                            <label for="stelleBookInput">Buch</label>
+                            <div class="relative">
+                                <input type="text" id="stelleBookInput" required placeholder="z.B. Johannes" autocomplete="off">
+                                <div class="suggestions" id="stelleBookSuggestions"></div>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="stelleChapter">Kapitel</label>
+                                <input type="number" id="stelleChapter" required min="1" step="1" placeholder="3">
+                            </div>
+                            <div class="form-group">
+                                <label for="stelleStart">Vers von</label>
+                                <input type="number" id="stelleStart" required min="1" step="1" placeholder="16">
+                            </div>
+                            <div class="form-group">
+                                <label for="stelleEnd">Vers bis</label>
+                                <input type="number" id="stelleEnd" min="1" step="1" placeholder="optional">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Prüfen</button>
+                    </form>
+                `;
+            }
+
+            document.getElementById('appMain').innerHTML = `
+                <div class="view-header">
+                    <h2>Stelle</h2>
+                    <div class="view-actions">
+                        <button type="button" class="btn btn-outline btn-sm" data-action="abort-practice">Abbrechen</button>
+                    </div>
+                </div>
+                <div class="practice-progress">${formatPracticeProgress(verse, progress)}</div>
+                <div class="panel">${body}</div>
+            `;
+
+            if (!s.feedback) stelleBookAutocomplete.wire(true);
+        }
+
+        function handleStelleSubmit() {
+            const s = practiceSession;
+            if (!s || s.feedback || getActivePracticeMode() !== 'stelle') return;
+            const verse = s.queue[s.index];
+
+            let bookId = document.getElementById('stelleBookId').value || stelleBookAutocomplete.commitInput();
+            if (!bookId || !getBookById(bookId)) {
+                showStatus('Bitte ein gültiges Bibelbuch wählen', 'error');
+                document.getElementById('stelleBookInput')?.focus();
+                return;
+            }
+            const chapter = Number(document.getElementById('stelleChapter').value);
+            const verseStart = Number(document.getElementById('stelleStart').value);
+            const verseEndRaw = document.getElementById('stelleEnd').value.trim();
+            const verseEnd = verseEndRaw === '' ? verseStart : Number(verseEndRaw);
+
+            if (!chapter || !verseStart) {
+                showStatus('Kapitel und Vers sind Pflichtfelder', 'error');
+                return;
+            }
+            if (verseEnd < verseStart) {
+                showStatus('„Vers bis“ muss ≥ „Vers von“ sein', 'error');
+                return;
+            }
+
+            const expectedEnd = Number(verse.verse_end) || Number(verse.verse_start);
+            const correct =
+                String(bookId) === String(verse.book_id) &&
+                chapter === Number(verse.chapter) &&
+                verseStart === Number(verse.verse_start) &&
+                verseEnd === expectedEnd;
+
+            const givenRef = formatVerseReference(bookId, chapter, verseStart, verseEnd) ||
+                `${document.getElementById('stelleBookInput').value} ${chapter}:${verseStart}`;
+
+            const score = shouldScorePracticeResult(verse, s);
+            const result = applyReviewResult(verse.id, 'stelle', correct, { score });
+            s.queue[s.index] = result.verse || verse;
+            s.feedback = { correct, givenRef, scored: result.scored };
+            renderActivePractice();
+        }
+
         function prepareClozeForCurrent() {
             const verse = practiceSession.queue[practiceSession.index];
             practiceSession.cloze = buildCloze(verse);
@@ -5679,28 +6848,29 @@
 
         function handleQuizAnswer(chosenId) {
             const s = practiceSession;
-            if (!s || s.feedback || s.mode !== 'quiz') return;
+            if (!s || s.feedback || getActivePracticeMode() !== 'quiz') return;
             const verse = s.queue[s.index];
             const correct = chosenId === verse.id;
-            applyReviewResult(verse.id, 'quiz', correct);
-            // refresh verse in queue for display after update
-            s.queue[s.index] = queryOne('SELECT * FROM verses WHERE id = ?', [verse.id]) || verse;
-            s.feedback = { correct, chosenId };
+            const score = shouldScorePracticeResult(verse, s);
+            const result = applyReviewResult(verse.id, 'quiz', correct, { score });
+            s.queue[s.index] = result.verse || verse;
+            s.feedback = { correct, chosenId, scored: result.scored };
             renderActivePractice();
         }
 
         function handleClozeSubmit() {
             const s = practiceSession;
-            if (!s || s.feedback || s.mode !== 'luckentext') return;
+            if (!s || s.feedback || getActivePracticeMode() !== 'luckentext') return;
             const verse = s.queue[s.index];
             const inputs = [...document.querySelectorAll('.cloze-blank-input')]
                 .sort((a, b) => Number(a.dataset.blankIndex) - Number(b.dataset.blankIndex));
             const givenParts = inputs.map(el => el.value);
             const given = givenParts.join(' ');
             const correct = normalizeAnswer(given) === s.cloze.expectedNormalized;
-            applyReviewResult(verse.id, 'luckentext', correct);
-            s.queue[s.index] = queryOne('SELECT * FROM verses WHERE id = ?', [verse.id]) || verse;
-            s.feedback = { correct, given, givenParts };
+            const score = shouldScorePracticeResult(verse, s);
+            const result = applyReviewResult(verse.id, 'luckentext', correct, { score });
+            s.queue[s.index] = result.verse || verse;
+            s.feedback = { correct, given, givenParts, scored: result.scored };
             renderActivePractice();
         }
 
@@ -5710,82 +6880,11 @@
             s.index += 1;
             s.feedback = null;
             s.cloze = null;
-            if (s.mode === 'luckentext' && s.index < s.queue.length) prepareClozeForCurrent();
+            s.currentOptions = null;
+            if (s.index < s.queue.length && getActivePracticeMode() === 'luckentext') {
+                prepareClozeForCurrent();
+            }
             renderActivePractice();
-        }
-
-        function renderMemoryPractice() {
-            const s = practiceSession;
-            if (s.finished) {
-                document.getElementById('appMain').innerHTML = `
-                    <div class="view-header"><h2>Memory</h2></div>
-                    <div class="panel empty-state">
-                        <p>Alle Paare gefunden. Fortschritt wurde gespeichert.</p>
-                        <div style="margin-top:16px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">
-                            <button type="button" class="btn btn-primary" data-action="memory-again">Nochmal</button>
-                            <button type="button" class="btn btn-outline" data-action="abort-practice">Zurück zum Setup</button>
-                        </div>
-                    </div>
-                `;
-                return;
-            }
-
-            const cardsHtml = s.cards.map((card, idx) => {
-                const matched = s.matched.has(card.pairId);
-                const flipped = matched || s.flipped.includes(idx);
-                let cls = `memory-card ${card.kind}-card`;
-                if (matched) cls += ' matched';
-                else if (flipped) cls += ' flipped';
-                else cls += ' face-down';
-                const label = flipped || matched ? escapeHtml(card.label) : '';
-                return `<button type="button" class="${cls}" data-action="memory-flip" data-card-index="${idx}" ${matched || s.lock ? 'disabled' : ''}>${label}</button>`;
-            }).join('');
-
-            document.getElementById('appMain').innerHTML = `
-                <div class="view-header">
-                    <h2>Memory</h2>
-                    <div class="view-actions">
-                        <button type="button" class="btn btn-outline btn-sm" data-action="abort-practice">Abbrechen</button>
-                    </div>
-                </div>
-                <div class="practice-progress">${s.matched.size} / ${s.verses.length} Paare</div>
-                <div class="memory-grid">${cardsHtml}</div>
-            `;
-        }
-
-        function handleMemoryFlip(index) {
-            const s = practiceSession;
-            if (!s || s.mode !== 'memory' || s.lock || s.finished) return;
-            if (s.flipped.includes(index)) return;
-            const card = s.cards[index];
-            if (s.matched.has(card.pairId)) return;
-
-            s.flipped.push(index);
-            renderMemoryPractice();
-
-            if (s.flipped.length < 2) return;
-
-            const [a, b] = s.flipped;
-            const cardA = s.cards[a];
-            const cardB = s.cards[b];
-            s.lock = true;
-
-            if (cardA.pairId === cardB.pairId && cardA.kind !== cardB.kind) {
-                s.matched.add(cardA.pairId);
-                s.flipped = [];
-                s.lock = false;
-                if (s.matched.size === s.verses.length) {
-                    s.verses.forEach(v => applyReviewResult(v.id, 'memory', true));
-                    s.finished = true;
-                }
-                renderMemoryPractice();
-            } else {
-                setTimeout(() => {
-                    s.flipped = [];
-                    s.lock = false;
-                    renderMemoryPractice();
-                }, 700);
-            }
         }
 
 
